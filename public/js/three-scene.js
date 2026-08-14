@@ -1,4 +1,3 @@
-
 (function () {
     'use strict';
 
@@ -139,6 +138,7 @@
             buildEarth(earthTexture, normalTexture, cloudTexture);
             buildHUDOverlays();
             buildSSALabels();
+            buildLocationPin();
         };
 
         // Try loading textures. If any fails, generate fallback canvas textures.
@@ -773,6 +773,159 @@
         }
     }
 
+    function latLonToVector3(lat, lon, radius) {
+        const phi = (90 - lat) * (Math.PI / 180);
+        const theta = (lon + 180) * (Math.PI / 180);
+
+        return new THREE.Vector3(
+            -radius * Math.sin(phi) * Math.cos(theta),
+            radius * Math.cos(phi),
+            radius * Math.sin(phi) * Math.sin(theta)
+        );
+    }
+
+    function buildLocationPin() {
+        if (!STATE.earthGroup || !STATE.earth) return;
+
+        const PIN_LAT = 29.36;
+        const PIN_LON = 79.46;
+        const PIN_LABEL = 'ARIES • Nainital';
+
+        const pinGroup = new THREE.Group();
+
+        const groundPos = latLonToVector3(
+            PIN_LAT,
+            PIN_LON,
+            STATE.sphereRadius + 0.015
+        );
+        pinGroup.position.copy(groundPos);
+
+        const target = groundPos.clone().add(groundPos.clone().normalize());
+        pinGroup.lookAt(target);
+
+        const telescopeGroup = new THREE.Group();
+
+        const baseGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.15, 16);
+        baseGeo.translate(0, 0.075, 0);
+        const baseMat = new THREE.MeshPhongMaterial({ color: 0x1e3a8a });
+        const base = new THREE.Mesh(baseGeo, baseMat);
+        telescopeGroup.add(base);
+
+        const panelGeo = new THREE.BoxGeometry(0.6, 0.02, 0.15);
+        panelGeo.translate(0, 0.1, 0);
+        const panelMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
+        const panel = new THREE.Mesh(panelGeo, panelMat);
+        telescopeGroup.add(panel);
+
+        const beamHeight = 2.4;
+        const beamGeo = new THREE.CylinderGeometry(
+            0.13,
+            0.045,
+            beamHeight,
+            20,
+            1,
+            true
+        );
+
+        const beamCanvas = document.createElement('canvas');
+        beamCanvas.width = 8;
+        beamCanvas.height = 256;
+
+        const beamCtx = beamCanvas.getContext('2d');
+
+        const beamGrad = beamCtx.createLinearGradient(
+            0,
+            256,
+            0,
+            0
+        );
+
+        beamGrad.addColorStop(0, 'rgba(255, 209, 128, 0.85)');
+        beamGrad.addColorStop(0.35, 'rgba(255, 190, 90, 0.35)');
+        beamGrad.addColorStop(1, 'rgba(255, 176, 32, 0)');
+
+        beamCtx.fillStyle = beamGrad;
+        beamCtx.fillRect(0, 0, 8, 256);
+
+        const beamTex = new THREE.CanvasTexture(beamCanvas);
+
+        const beamMat = new THREE.MeshBasicMaterial({
+            map: beamTex,
+            transparent: true,
+            depthWrite: false,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending,
+            opacity: 0.8
+        });
+
+        const beam = new THREE.Mesh(beamGeo, beamMat);
+
+        beam.position.y = 0.32 + beamHeight / 2;
+
+        telescopeGroup.add(beam);
+
+        // Sparkle
+        const sparkleCanvas = document.createElement('canvas');
+        sparkleCanvas.width = 32;
+        sparkleCanvas.height = 32;
+        const sCtx = sparkleCanvas.getContext('2d');
+        const sGrad = sCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        sGrad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        sGrad.addColorStop(0.2, 'rgba(255, 209, 128, 0.8)');
+        sGrad.addColorStop(1, 'rgba(255, 176, 32, 0)');
+        sCtx.fillStyle = sGrad;
+        sCtx.fillRect(0, 0, 32, 32);
+        
+        const sparkleTex = new THREE.CanvasTexture(sparkleCanvas);
+        const sparkleMat = new THREE.SpriteMaterial({
+            map: sparkleTex,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const sparkle = new THREE.Sprite(sparkleMat);
+        sparkle.scale.set(0.6, 0.6, 1);
+        sparkle.position.y = 0.32 + beamHeight;
+        telescopeGroup.add(sparkle);
+
+        STATE.locationPin = {
+            beamMat: beamMat,
+            sparkleMat: sparkleMat,
+            pulseT: 0
+        };
+
+        telescopeGroup.rotation.x = Math.PI / 2;
+        pinGroup.add(telescopeGroup);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; 
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+
+        ctx.font = 'bold 36px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = '#000000';
+        ctx.strokeText(PIN_LABEL, 256, 64);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(PIN_LABEL, 256, 64);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        const spriteMat = new THREE.SpriteMaterial({ 
+            map: tex, 
+            transparent: true
+        });
+        const sprite = new THREE.Sprite(spriteMat);
+        sprite.scale.set(3.2, 0.8, 1);
+        sprite.position.set(0, 1.5, 0);
+        telescopeGroup.add(sprite);
+
+        STATE.earth.add(pinGroup);
+    }
+
     function onWindowResize() {
         const container = document.getElementById('earth-canvas');
         if (!container || !STATE.renderer || !STATE.camera) return;
@@ -897,6 +1050,23 @@
             const pulse = orb.initialOpacity + Math.sin(time * 1.5) * 0.05;
             orb.material.opacity = Math.max(0.04, Math.min(0.3, pulse));
         });
+
+        // Nainital marker pulse animation
+        if (STATE.locationPin) {
+            if (isAnimated) {
+                STATE.locationPin.pulseT += 0.05 * motionSpeed;
+            }
+            if (STATE.locationPin.beamMat) {
+                STATE.locationPin.beamMat.opacity =
+                    0.65 +
+                    Math.sin(STATE.locationPin.pulseT) * 0.2;
+            }
+            if (STATE.locationPin.sparkleMat) {
+                STATE.locationPin.sparkleMat.opacity =
+                    0.65 +
+                    Math.sin(STATE.locationPin.pulseT) * 0.35;
+            }
+        }
 
         // HUD Overlays & Radar Sweep rotations
         STATE.hudElements.forEach(hud => {

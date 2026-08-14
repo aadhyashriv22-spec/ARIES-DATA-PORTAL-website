@@ -191,21 +191,22 @@ const TEAM_MEMBERS = [
   }
 ], links: { website: null, scholar: null, github: null, linkedin: null }, published: true },
     { id: "swe-02", name: "Pallavi Sati", designation: "Software Engineer", category: "software_engineer", organization: "DRDO-IRDE", field: "Astrophysics and Machine Learning", workingOn: "Alert Broker Architecture for SSA", researchArea: "Resident space object (RSO) detection and space situational awareness via data-archive and alert-broker systems, alongside LSST/Rubin-era machine-learning reliability, calibration of transient classifiers and learning-to-defer for follow-up prioritization.", photo:"/assets/team/swe-02.jpg", email: "pallavisati23@gmail.com", bio: ["Astrophysicist (MSc, Data-Intensive Astrophysics, Cardiff) working across time-domain astronomy and machine learning. At ARIES, the work comprises RSO detection and space situational awareness; personal research on the reliability of ML transient classifiers for LSST-era surveys was presented at NAM 2026 Birmingham and is in preparation for an Astronomical Journal."], interests: ["Time-domain astrophysics, machine-learning reliability, classifier calibration, LSST alert brokers, and space situational awareness (RSO detection)."], publications: ["Calibration and Reliability of ZTF Transient Broker Classifiers — poster, National Astronomy Meeting (NAM) 2026; manuscript in preparation for an Astronomical Journal."], links: { website: null, scholar: null, github: null, linkedin: "https://www.linkedin.com/in/pallavi-sati-910761213/ "}, published: true },
-    { id: "swe-03", name: "Aadhya Shrivastava", designation: "Software Engineer", category: "software_engineer", organization: "BEL", field: "Software Engineering", workingOn: "Website/Software development, Pipeline automation for Satellite image processing", researchArea: "AI Applications, Data processing, Satellite data analysis", photo:"/assets/team/swe-03.jpg", email: "aadhyashriv22@gmail.com", bio: ["A Computer Science and Communication Engineering graduate working as a Project Associate at ARIES. My work focuses on automating the image processing pipeline, data analysis, and software development for space situational awareness using AI. I am particularly interested in bridging computer science with space research, contributing to real-world scientific and observational challenges."], interests: ["Remote sensing, satellite data analysis, AI in space science, data analytics"], publications: [ {
-    title: "Calibration and Reliability of ZTF Transient Broker Classifiers",
-    journal: "ISTI",
-    status: "Accepted (2025)"
-  },
-  {
-    title: "Stacking Ensemble Regression for Surrogate Modeling of Terahertz Microstrip Patch Antennas",
-    journal: "Turkish Journal of Electrical Engineering & Computer Sciences",
-    status: "Under Review"
-  },
-  {
-    title: "Design and Optimization of a Ku-Band Microstrip Patch Antenna for Satellite Communications Using Machine Learning",
-    journal: "ChemistrySelect (Wiley)",
-    status: "Submitted"
-  }], links: { website: null, scholar: null, github: null, linkedin:"https://www.linkedin.com/public-profile/settings/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_self_edit_contact_info%3BxbKG2Rz9SH%2Bx0pXiUcMiJw%3D%3D" }, published: true },
+    { id: "swe-03", name: "Aadhya Shrivastava", designation: "Software Engineer", category: "software_engineer", organization: "BEL", field: "Software Engineering", workingOn: "Website/Software development, Pipeline automation for Satellite image processing", researchArea: "AI Applications, Data processing, Satellite data analysis", photo:"/assets/team/swe-03.jpg", email: "aadhyashriv22@gmail.com", bio: ["A Computer Science and Communication Engineering graduate working as a Project Associate at ARIES. My work focuses on automating the image processing pipeline, data analysis, and software development for space situational awareness using AI. I am particularly interested in bridging computer science with space research, contributing to real-world scientific and observational challenges."], interests: ["Remote sensing, satellite data analysis, AI in space science, data analytics"], 
+    publications: [ {
+            title: "Calibration and Reliability of ZTF Transient Broker Classifiers",
+            journal: "ISTI",
+            
+        },
+        {
+            title: "Stacking Ensemble Regression for Surrogate Modeling of Terahertz Microstrip Patch Antennas",
+            journal: "Turkish Journal of Electrical Engineering & Computer Sciences",
+            
+        },
+        {
+            title: "Design and Optimization of a Ku-Band Microstrip Patch Antenna for Satellite Communications Using Machine Learning",
+            journal: "ChemistrySelect (Wiley)",
+            
+        }], links: { website: null, scholar: null, github: null, linkedin:"https://www.linkedin.com/public-profile/settings/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_self_edit_contact_info%3BxbKG2Rz9SH%2Bx0pXiUcMiJw%3D%3D" }, published: true },
 
     // ---- Electronic Engineers (3) ----
     { id: "ece-01", name: "Bhargavi BN", designation: "Electronics Engineer", category: "electronic_engineer", organization: "ISTRAC-ISRO", field: "Electronics and Communication engineer", workingOn: " Embedded sytstem for Schmidt telescope Control ", researchArea: "Embedded system ", photo:"/assets/team/ece-01.jpg", email: "bnbhargavi312gmail.com", bio: ["Electronics and Communication Engineer working as Project Associate I at ARIES–ISTRAC ISRO. Working on Schmidt Telescope control systems, embedded electronics, servo motor control, encoder interfacing, and hardware integration for astronomical instrumentation."], interests: ["Embedded system ,IoT,control sytstem"], researchExperience: ["Implementation of Underground Mining Robot Using Machine Learning.."], publications: [], links: { website: null, scholar: null, github: null, linkedin: "https://www.linkedin.com/in/bn-bhargavi-463257301?utm_source=share_via&utm_content=profile&utm_medium=member_android" }, published: true },

@@ -65,14 +65,21 @@
             ? `<ul class="experience-list">${member.researchExperience.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>`
             : `<p class="no-links">Research experience not yet added.</p>`;
 
-        const publicationsHtml = (member.publications || []).length
-            ? `<ol class="publication-list">${member.publications.map((p) => {
-                const citation = escapeHtml(p.citation || '');
-                return p.url
-                    ? `<li><a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer">${citation}</a></li>`
-                    : `<li>${citation}</li>`;
-            }).join('')}</ol>`
-            : `<p class="no-links">No publications listed yet.</p>`;
+const publicationsHtml = (member.publications || []).length
+    ? `<ol class="publication-list">${member.publications.map((p) => {
+        const title = escapeHtml(p.title || p.citation || '');
+        const journal = escapeHtml(p.journal || '');
+        const status = escapeHtml(p.status || '');
+
+        return `
+            <li>
+                <div class="publication-title">${title}</div>
+                ${journal ? `<div class="publication-journal">${journal}</div>` : ''}
+                ${status ? `<div class="publication-status">${status}</div>` : ''}
+            </li>
+        `;
+    }).join('')}</ol>`
+    : `<p class="no-links">No publications listed yet.</p>`;
 
         const links = member.links || {};
         const linkEntries = Object.keys(LINK_LABELS).filter((key) => links[key]);
