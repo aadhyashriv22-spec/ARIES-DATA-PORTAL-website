@@ -1,5 +1,27 @@
+
 (function () {
     'use strict';
+
+    // Parse URL parameter for progressive build stage
+    const urlParams = new URLSearchParams(window.location.search);
+    const stageParam = urlParams.get('earthStage');
+    const isDebugMode = stageParam !== null;
+    const earthStage = isDebugMode ? Math.max(1, Math.min(17, parseInt(stageParam, 10))) : 17;
+
+    // Seeded random number generator for deterministic runs in debug mode
+    let seed = 12345;
+    function seededRandom() {
+        const x = Math.sin(seed++) * 10000;
+        return x - Math.floor(x);
+    }
+
+    function getRandom() {
+        return isDebugMode ? seededRandom() : Math.random();
+    }
+
+    function stageEnabled(stage) {
+        return earthStage >= stage;
+    }
 
     // Global settings namespace or internal state
     const STATE = {
@@ -59,29 +81,55 @@
         STATE.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
         STATE.renderer.setSize(width, height);
         STATE.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        STATE.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        STATE.renderer.toneMappingExposure = 1.1;
+
+        // Stage 5 enables full production tone mapping
+        if (stageEnabled(5)) {
+            STATE.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            STATE.renderer.toneMappingExposure = 1.1;
+        } else {
+            STATE.renderer.toneMapping = THREE.NoToneMapping;
+        }
+
         container.appendChild(STATE.renderer.domElement);
 
         // Group container for Earth and its orbital system
         STATE.earthGroup = new THREE.Group();
         STATE.scene.add(STATE.earthGroup);
 
-        // Shift Earth Group to the right on desktop (approx 50px left from right edge relative to original), center on mobile
+        // Shift Earth Group to the right on desktop, center on mobile
         updateGroupPosition();
 
-        // Lights - Improved for soft blue rim glow and scientific look
-        STATE.lights.ambient = new THREE.AmbientLight(0x0c132c, 1.8);
-        STATE.scene.add(STATE.lights.ambient);
+        // Stage 1 grid helper for visual reference
+        if (earthStage === 1) {
+            const gridHelper = new THREE.GridHelper(20, 20, 0x4f7fd6, 0x1e293b);
+            gridHelper.material.opacity = 0.25;
+            gridHelper.material.transparent = true;
+            STATE.scene.add(gridHelper);
+        }
 
-        STATE.lights.dirLight = new THREE.DirectionalLight(0xffffff, 3.2);
-        STATE.lights.dirLight.position.set(10, 4, 10);
-        STATE.scene.add(STATE.lights.dirLight);
+        // Lighting configuration based on stage
+        if (stageEnabled(2) && !stageEnabled(5)) {
+            // Simple light for Stage 2, 3, 4 to reveal geometry and normal maps
+            const simpleLight = new THREE.DirectionalLight(0xffffff, 2.0);
+            simpleLight.position.set(10, 10, 10);
+            STATE.scene.add(simpleLight);
+            STATE.lights.simpleLight = simpleLight;
+        }
 
-        // Ambient back-highlight for soft blue bloom
-        STATE.lights.blueLight = new THREE.DirectionalLight(0x3a82f6, 3.5);
-        STATE.lights.blueLight.position.set(-12, -4, -10);
-        STATE.scene.add(STATE.lights.blueLight);
+        if (stageEnabled(5)) {
+            // Production lights - Improved for soft blue rim glow and scientific look
+            STATE.lights.ambient = new THREE.AmbientLight(0x0c132c, 1.8);
+            STATE.scene.add(STATE.lights.ambient);
+
+            STATE.lights.dirLight = new THREE.DirectionalLight(0xffffff, 3.2);
+            STATE.lights.dirLight.position.set(10, 4, 10);
+            STATE.scene.add(STATE.lights.dirLight);
+
+            // Ambient back-highlight for soft blue bloom
+            STATE.lights.blueLight = new THREE.DirectionalLight(0x3a82f6, 3.5);
+            STATE.lights.blueLight.position.set(-12, -4, -10);
+            STATE.scene.add(STATE.lights.blueLight);
+        }
 
         // Textures setup with procedural generation as fallback
         const textureLoader = new THREE.TextureLoader();
@@ -149,7 +197,6 @@
         } else if (w < 992) {
             STATE.earthGroup.position.set(0.6, 0, 0);
         } else {
-            // Shifted slightly to the left relative to previous 2.4 for comfortable right edge breathing room
             STATE.earthGroup.position.set(1.5, 0, 0);
         }
     }
@@ -265,9 +312,9 @@
 
         ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
         for (let i = 0; i < 50; i++) {
-            const x = Math.random() * canvas.width;
-            const y = 60 + Math.random() * (canvas.height - 120);
-            const r = 40 + Math.random() * 90;
+            const x = getRandom() * canvas.width;
+            const y = 60 + getRandom() * (canvas.height - 120);
+            const r = 40 + getRandom() * 90;
 
             const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
             grad.addColorStop(0, 'rgba(255, 255, 255, 0.28)');
@@ -288,127 +335,167 @@
         const sphereRadius = STATE.sphereRadius;
         const segments = 64;
 
-        const earthGeo = new THREE.SphereGeometry(sphereRadius, segments, segments);
-        const earthMat = new THREE.MeshStandardMaterial({
-            map: earthTexture,
-            normalMap: normalTexture,
-            normalScale: new THREE.Vector2(0.35, 0.35),
-            roughness: 0.75,
-            metalness: 0.15
-        });
-        STATE.earth = new THREE.Mesh(earthGeo, earthMat);
-        STATE.earth.renderOrder = 1;
-        STATE.earthGroup.add(STATE.earth);
+        if (stageEnabled(2)) {
+            const earthGeo = new THREE.SphereGeometry(sphereRadius, segments, segments);
+            let earthMat;
 
-        // Cloud Layer
-        const cloudGeo = new THREE.SphereGeometry(sphereRadius + 0.08, segments, segments);
-        const cloudMat = new THREE.MeshPhongMaterial({
-            map: cloudTexture,
-            transparent: true,
-            blending: THREE.NormalBlending,
-            opacity: 0.42,
-            depthWrite: false
-        });
-        STATE.clouds = new THREE.Mesh(cloudGeo, cloudMat);
-        STATE.clouds.renderOrder = 1.1;
-        STATE.earth.add(STATE.clouds);
+            if (earthStage === 2) {
+                // Neutral gray material
+                earthMat = new THREE.MeshStandardMaterial({
+                    color: 0x888888,
+                    roughness: 0.9,
+                    metalness: 0.1
+                });
+            } else if (earthStage === 3) {
+                // Flat Earth color texture mapped onto the sphere
+                earthMat = new THREE.MeshBasicMaterial({
+                    map: earthTexture
+                });
+            } else if (earthStage === 4) {
+                // Flat Earth color texture and normal mapping with simple material properties
+                earthMat = new THREE.MeshStandardMaterial({
+                    map: earthTexture,
+                    normalMap: normalTexture,
+                    normalScale: new THREE.Vector2(0.35, 0.35),
+                    roughness: 0.9,
+                    metalness: 0.1
+                });
+            } else {
+                // Production Earth material
+                earthMat = new THREE.MeshStandardMaterial({
+                    map: earthTexture,
+                    normalMap: normalTexture,
+                    normalScale: new THREE.Vector2(0.35, 0.35),
+                    roughness: 0.75,
+                    metalness: 0.15
+                });
+            }
 
-        // Atmospheric Rim Lighting (Soft blue bloom)
-        const atmosphereGeo = new THREE.SphereGeometry(sphereRadius + 0.45, segments, segments);
-        const atmosphereMat = new THREE.ShaderMaterial({
-            vertexShader: `
-                varying vec3 vNormal;
-                void main() {
-                    vNormal = normalize(normalMatrix * normal);
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                }
-            `,
-            fragmentShader: `
-                varying vec3 vNormal;
-                void main() {
-                    // Soft gradient curve for cinematic rim glow
-                    float intensity = pow(0.70 - dot(vNormal, vec3(0, 0, 1.0)), 3.2);
-                    gl_FragColor = vec4(0.35, 0.60, 1.0, 1.0) * intensity;
-                }
-            `,
-            blending: THREE.AdditiveBlending,
-            side: THREE.BackSide,
-            transparent: true
-        });
-        STATE.atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
-        STATE.atmosphere.renderOrder = 1.2;
-        STATE.earthGroup.add(STATE.atmosphere);
+            STATE.earth = new THREE.Mesh(earthGeo, earthMat);
+            STATE.earth.renderOrder = 1;
+            STATE.earthGroup.add(STATE.earth);
+        }
+
+        // Cloud Layer (Stage 6)
+        if (stageEnabled(6)) {
+            const cloudGeo = new THREE.SphereGeometry(sphereRadius + 0.08, segments, segments);
+            const cloudMat = new THREE.MeshPhongMaterial({
+                map: cloudTexture,
+                transparent: true,
+                blending: THREE.NormalBlending,
+                opacity: 0.42,
+                depthWrite: false
+            });
+            STATE.clouds = new THREE.Mesh(cloudGeo, cloudMat);
+            STATE.clouds.renderOrder = 1.1;
+            if (STATE.earth) {
+                STATE.earth.add(STATE.clouds);
+            } else {
+                STATE.earthGroup.add(STATE.clouds);
+            }
+        }
+
+        // Atmospheric Rim Lighting (Stage 7)
+        if (stageEnabled(7)) {
+            const atmosphereGeo = new THREE.SphereGeometry(sphereRadius + 0.45, segments, segments);
+            const atmosphereMat = new THREE.ShaderMaterial({
+                vertexShader: `
+                    varying vec3 vNormal;
+                    void main() {
+                        vNormal = normalize(normalMatrix * normal);
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    varying vec3 vNormal;
+                    void main() {
+                        float intensity = pow(0.70 - dot(vNormal, vec3(0, 0, 1.0)), 3.2);
+                        gl_FragColor = vec4(0.35, 0.60, 1.0, 1.0) * intensity;
+                    }
+                `,
+                blending: THREE.AdditiveBlending,
+                side: THREE.BackSide,
+                transparent: true
+            });
+            STATE.atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
+            STATE.atmosphere.renderOrder = 1.2;
+            STATE.earthGroup.add(STATE.atmosphere);
+        }
     }
 
     function buildStarfields() {
         const isMobile = window.innerWidth < 768;
-        
-        // 1. Far Star Layer (dense, tiny, slow parallax)
-        const countFar = isMobile ? 200 : 700;
-        const geomFar = new THREE.BufferGeometry();
-        const posFar = new Float32Array(countFar * 3);
-        
-        for (let i = 0; i < countFar; i++) {
-            const u = Math.random(); const v = Math.random();
-            const theta = u * 2.0 * Math.PI;
-            const phi = Math.acos(2.0 * v - 1.0);
-            const radius = 90 + Math.random() * 30;
 
-            posFar[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-            posFar[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-            posFar[i * 3 + 2] = radius * Math.cos(phi);
+        // 1. Far Star Layer (Stage 8)
+        if (stageEnabled(8)) {
+            const countFar = isMobile ? 200 : 700;
+            const geomFar = new THREE.BufferGeometry();
+            const posFar = new Float32Array(countFar * 3);
+
+            for (let i = 0; i < countFar; i++) {
+                const u = getRandom(); const v = getRandom();
+                const theta = u * 2.0 * Math.PI;
+                const phi = Math.acos(2.0 * v - 1.0);
+                const radius = 90 + getRandom() * 30;
+
+                posFar[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                posFar[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                posFar[i * 3 + 2] = radius * Math.cos(phi);
+            }
+            geomFar.setAttribute('position', new THREE.BufferAttribute(posFar, 3));
+
+            const matFar = new THREE.PointsMaterial({
+                size: 0.3,
+                color: 0x88aaff,
+                transparent: true,
+                opacity: 0.6,
+                depthWrite: false
+            });
+            STATE.starsFar = new THREE.Points(geomFar, matFar);
+            STATE.starsFar.renderOrder = 0;
+            STATE.scene.add(STATE.starsFar);
         }
-        geomFar.setAttribute('position', new THREE.BufferAttribute(posFar, 3));
-        
-        const matFar = new THREE.PointsMaterial({
-            size: 0.3,
-            color: 0x88aaff,
-            transparent: true,
-            opacity: 0.6,
-            depthWrite: false
-        });
-        STATE.starsFar = new THREE.Points(geomFar, matFar);
-        STATE.starsFar.renderOrder = 0;
-        STATE.scene.add(STATE.starsFar);
 
-        // 2. Near Star Layer (brighter, larger, more distinct parallax)
-        const countNear = isMobile ? 80 : 250;
-        const geomNear = new THREE.BufferGeometry();
-        const posNear = new Float32Array(countNear * 3);
-        
-        for (let i = 0; i < countNear; i++) {
-            const u = Math.random(); const v = Math.random();
-            const theta = u * 2.0 * Math.PI;
-            const phi = Math.acos(2.0 * v - 1.0);
-            const radius = 55 + Math.random() * 35;
+        // 2. Near Star Layer (Stage 9)
+        if (stageEnabled(9)) {
+            const countNear = isMobile ? 80 : 250;
+            const geomNear = new THREE.BufferGeometry();
+            const posNear = new Float32Array(countNear * 3);
 
-            posNear[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-            posNear[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-            posNear[i * 3 + 2] = radius * Math.cos(phi);
+            for (let i = 0; i < countNear; i++) {
+                const u = getRandom(); const v = getRandom();
+                const theta = u * 2.0 * Math.PI;
+                const phi = Math.acos(2.0 * v - 1.0);
+                const radius = 55 + getRandom() * 35;
+
+                posNear[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                posNear[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                posNear[i * 3 + 2] = radius * Math.cos(phi);
+            }
+            geomNear.setAttribute('position', new THREE.BufferAttribute(posNear, 3));
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 16; canvas.height = 16;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
+            grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            grad.addColorStop(0.3, 'rgba(173, 216, 230, 0.8)');
+            grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 16, 16);
+            const starTex = new THREE.CanvasTexture(canvas);
+
+            const matNear = new THREE.PointsMaterial({
+                size: 0.7,
+                map: starTex,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            STATE.starsNear = new THREE.Points(geomNear, matNear);
+            STATE.starsNear.renderOrder = 0;
+            STATE.scene.add(STATE.starsNear);
         }
-        geomNear.setAttribute('position', new THREE.BufferAttribute(posNear, 3));
-
-        const canvas = document.createElement('canvas');
-        canvas.width = 16; canvas.height = 16;
-        const ctx = canvas.getContext('2d');
-        const grad = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-        grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-        grad.addColorStop(0.3, 'rgba(173, 216, 230, 0.8)');
-        grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 16, 16);
-        const starTex = new THREE.CanvasTexture(canvas);
-
-        const matNear = new THREE.PointsMaterial({
-            size: 0.7,
-            map: starTex,
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
-        });
-        STATE.starsNear = new THREE.Points(geomNear, matNear);
-        STATE.starsNear.renderOrder = 0;
-        STATE.scene.add(STATE.starsNear);
     }
 
     function buildOrbitsAndSatellites() {
@@ -416,7 +503,6 @@
 
         const sphereRadius = STATE.sphereRadius;
 
-        // Radii constrained close to the Earth (max radius 8.8 instead of 14.5) to keep paths localized
         const orbitConfigs = [
             { radiusX: sphereRadius + 0.8, radiusY: sphereRadius + 0.6, angleZ: 0.35, angleY: 0.2, speed: 0.005, color: 0x4f7fd6, name: "LEO-A" },
             { radiusX: sphereRadius + 1.4, radiusY: sphereRadius + 1.1, angleZ: -0.45, angleY: 0.7, speed: 0.0035, color: 0x6b96e0, name: "LEO-B" },
@@ -427,125 +513,150 @@
         const isMobile = window.innerWidth < 768;
 
         orbitConfigs.forEach((config, idx) => {
-            // Draw orbit paths
-            const points = [];
-            const segments = isMobile ? 48 : 128;
-            for (let i = 0; i <= segments; i++) {
-                const theta = (i / segments) * Math.PI * 2;
-                const x = Math.cos(theta) * config.radiusX;
-                const y = Math.sin(theta) * config.radiusY;
-                points.push(new THREE.Vector3(x, y, 0));
+            // Draw orbit paths (Stage 10)
+            if (stageEnabled(10)) {
+                const points = [];
+                const segments = isMobile ? 48 : 128;
+                for (let i = 0; i <= segments; i++) {
+                    const theta = (i / segments) * Math.PI * 2;
+                    const x = Math.cos(theta) * config.radiusX;
+                    const y = Math.sin(theta) * config.radiusY;
+                    points.push(new THREE.Vector3(x, y, 0));
+                }
+
+                const ringGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                const ringMaterial = new THREE.LineBasicMaterial({
+                    color: config.color,
+                    transparent: true,
+                    opacity: isMobile ? 0.08 : 0.24,
+                    blending: THREE.AdditiveBlending
+                });
+
+                const ringMesh = new THREE.Line(ringGeometry, ringMaterial);
+                ringMesh.rotation.z = config.angleZ;
+                ringMesh.rotation.y = config.angleY;
+                ringMesh.renderOrder = 2;
+                STATE.earthGroup.add(ringMesh);
+                STATE.orbits.push({ mesh: ringMesh, material: ringMaterial, initialOpacity: ringMaterial.opacity });
             }
-
-            const ringGeometry = new THREE.BufferGeometry().setFromPoints(points);
-            const ringMaterial = new THREE.LineBasicMaterial({
-                color: config.color,
-                transparent: true,
-                opacity: isMobile ? 0.08 : 0.24,
-                blending: THREE.AdditiveBlending
-            });
-
-            const ringMesh = new THREE.Line(ringGeometry, ringMaterial);
-            ringMesh.rotation.z = config.angleZ;
-            ringMesh.rotation.y = config.angleY;
-            ringMesh.renderOrder = 2;
-            STATE.earthGroup.add(ringMesh);
-            STATE.orbits.push({ mesh: ringMesh, material: ringMaterial, initialOpacity: ringMaterial.opacity });
 
             if (isMobile && idx >= 2) return;
             if (idx >= 3) return; // limit to 3 main operational targets
 
-            const satGroup = new THREE.Group();
+            // Satellites (Stage 11)
+            if (stageEnabled(11)) {
+                const satGroup = new THREE.Group();
+                const satMesh = new THREE.Group();
 
-            // Detailed Satellite body structure
-            const satMesh = new THREE.Group();
+                // 1. Central bus box
+                const busGeo = new THREE.BoxGeometry(0.22, 0.22, 0.32);
+                const busMat = new THREE.MeshPhongMaterial({
+                    color: 0xdddddd,
+                    emissive: 0x0f2447,
+                    specular: 0xffffff,
+                    shininess: 45
+                });
+                const bus = new THREE.Mesh(busGeo, busMat);
+                bus.renderOrder = 3;
+                satMesh.add(bus);
 
-            // 1. Central bus box
-            const busGeo = new THREE.BoxGeometry(0.22, 0.22, 0.32);
-            const busMat = new THREE.MeshPhongMaterial({
-                color: 0xdddddd,
-                emissive: 0x0f2447,
-                specular: 0xffffff,
-                shininess: 45
-            });
-            const bus = new THREE.Mesh(busGeo, busMat);
-            bus.renderOrder = 3;
-            satMesh.add(bus);
+                // 2. Solar panels extending from sides
+                const panelGeo = new THREE.BoxGeometry(0.68, 0.02, 0.2);
+                const panelMat = new THREE.MeshPhongMaterial({
+                    color: 0x60a5fa,
+                    emissive: 0x07111e,
+                    specular: 0xffffff,
+                    shininess: 85
+                });
+                const leftPanel = new THREE.Mesh(panelGeo, panelMat);
+                leftPanel.position.x = 0.4;
+                leftPanel.renderOrder = 3;
+                satMesh.add(leftPanel);
 
-            // 2. Solar panels extending from sides
-            const panelGeo = new THREE.BoxGeometry(0.68, 0.02, 0.2);
-            const panelMat = new THREE.MeshPhongMaterial({
-                color: 0x60a5fa,
-                emissive: 0x07111e,
-                specular: 0xffffff,
-                shininess: 85
-            });
-            const leftPanel = new THREE.Mesh(panelGeo, panelMat);
-            leftPanel.position.x = 0.4;
-            leftPanel.renderOrder = 3;
-            satMesh.add(leftPanel);
+                const rightPanel = leftPanel.clone();
+                rightPanel.position.x = -0.4;
+                satMesh.add(rightPanel);
 
-            const rightPanel = leftPanel.clone();
-            rightPanel.position.x = -0.4;
-            satMesh.add(rightPanel);
+                // 3. Antenna dish pointing towards Earth
+                const dishGeo = new THREE.CylinderGeometry(0, 0.1, 0.12, 8);
+                const dishMat = new THREE.MeshPhongMaterial({ color: 0xeeeeee, shininess: 50 });
+                const dish = new THREE.Mesh(dishGeo, dishMat);
+                dish.rotation.x = Math.PI / 2;
+                dish.position.z = -0.2;
+                dish.renderOrder = 3;
+                satMesh.add(dish);
 
-            // 3. Antenna dish pointing towards Earth
-            const dishGeo = new THREE.CylinderGeometry(0, 0.1, 0.12, 8);
-            const dishMat = new THREE.MeshPhongMaterial({ color: 0xeeeeee, shininess: 50 });
-            const dish = new THREE.Mesh(dishGeo, dishMat);
-            dish.rotation.x = Math.PI / 2;
-            dish.position.z = -0.2;
-            dish.renderOrder = 3;
-            satMesh.add(dish);
+                satGroup.add(satMesh);
 
-            satGroup.add(satMesh);
+                // Subtle blue navigation lights that blink slowly
+                const navLightGeo = new THREE.SphereGeometry(0.08, 6, 6);
+                const navLightMat = new THREE.MeshBasicMaterial({ color: 0x60a5fa });
+                const navLight = new THREE.Mesh(navLightGeo, navLightMat);
+                navLight.position.set(0.18, 0.18, 0.18);
+                satGroup.add(navLight);
 
-            // Subtle blue navigation lights that blink slowly
-            const navLightGeo = new THREE.SphereGeometry(0.08, 6, 6);
-            const navLightMat = new THREE.MeshBasicMaterial({ color: 0x60a5fa });
-            const navLight = new THREE.Mesh(navLightGeo, navLightMat);
-            navLight.position.set(0.18, 0.18, 0.18);
-            satGroup.add(navLight);
+                // Double side helper scanning ring
+                const helperRingGeo = new THREE.RingGeometry(0.32, 0.42, 16);
+                const helperRingMat = new THREE.MeshBasicMaterial({
+                    color: config.color,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.3
+                });
+                const helperRing = new THREE.Mesh(helperRingGeo, helperRingMat);
+                helperRing.renderOrder = 3;
+                satGroup.add(helperRing);
 
-            // Double side helper scanning ring
-            const helperRingGeo = new THREE.RingGeometry(0.32, 0.42, 16);
-            const helperRingMat = new THREE.MeshBasicMaterial({
-                color: config.color,
-                side: THREE.DoubleSide,
-                transparent: true,
-                opacity: 0.3
-            });
-            const helperRing = new THREE.Mesh(helperRingGeo, helperRingMat);
-            helperRing.renderOrder = 3;
-            satGroup.add(helperRing);
+                STATE.earthGroup.add(satGroup);
 
-            STATE.earthGroup.add(satGroup);
-            STATE.satellites.push({
-                group: satGroup,
-                mesh: satMesh,
-                navLight: navLight,
-                config: config,
-                angle: Math.random() * Math.PI * 2,
-                pulse: Math.random() * 10
-            });
+                let initialAngle;
+                if (isDebugMode) {
+                    if (idx === 0) initialAngle = 0;
+                    else if (idx === 1) initialAngle = Math.PI / 3;
+                    else initialAngle = Math.PI * 0.7;
+                } else {
+                    initialAngle = Math.random() * Math.PI * 2;
+                }
 
-            // Occasional scanning pulse traveling faster along this orbit path
-            const pulseParticleGeo = new THREE.SphereGeometry(0.1, 8, 8);
-            const pulseParticleMat = new THREE.MeshBasicMaterial({
-                color: 0x10b981,
-                transparent: true,
-                opacity: 0.85,
-                blending: THREE.AdditiveBlending
-            });
-            const pulseParticle = new THREE.Mesh(pulseParticleGeo, pulseParticleMat);
-            pulseParticle.renderOrder = 3;
-            STATE.earthGroup.add(pulseParticle);
-            STATE.scanningPulses.push({
-                mesh: pulseParticle,
-                config: config,
-                angle: Math.random() * Math.PI * 2,
-                speedMultiplier: 2.8 // sweeps faster than satellites
-            });
+                STATE.satellites.push({
+                    group: satGroup,
+                    mesh: satMesh,
+                    navLight: navLight,
+                    config: config,
+                    angle: initialAngle,
+                    pulse: isDebugMode ? idx * 2.0 : Math.random() * 10
+                });
+            }
+
+            // Scanning pulse particles (Stage 12)
+            if (stageEnabled(12)) {
+                const pulseParticleGeo = new THREE.SphereGeometry(0.1, 8, 8);
+                const pulseParticleMat = new THREE.MeshBasicMaterial({
+                    color: 0x10b981,
+                    transparent: true,
+                    opacity: 0.85,
+                    blending: THREE.AdditiveBlending
+                });
+                const pulseParticle = new THREE.Mesh(pulseParticleGeo, pulseParticleMat);
+                pulseParticle.renderOrder = 3;
+                STATE.earthGroup.add(pulseParticle);
+
+                let initialPulseAngle;
+                if (isDebugMode) {
+                    if (idx === 0) initialPulseAngle = Math.PI / 6;
+                    else if (idx === 1) initialPulseAngle = Math.PI / 2;
+                    else initialPulseAngle = Math.PI * 0.9;
+                } else {
+                    initialPulseAngle = Math.random() * Math.PI * 2;
+                }
+
+                STATE.scanningPulses.push({
+                    mesh: pulseParticle,
+                    config: config,
+                    angle: initialPulseAngle,
+                    speedMultiplier: 2.8
+                });
+            }
         });
     }
 
@@ -554,92 +665,112 @@
 
         const sphereRadius = STATE.sphereRadius;
 
-        // Faint rotating circular tracking rings behind the globe (z = -1.5)
-        const bgRings = [sphereRadius + 0.4, sphereRadius + 1.0, sphereRadius + 1.8];
-        bgRings.forEach(rad => {
-            const ringGeo = new THREE.RingGeometry(rad, rad + 0.02, 64);
-            const ringMat = new THREE.MeshBasicMaterial({
-                color: 0x4f7fd6,
+        // Faint rotating circular tracking rings behind the globe (z = -1.5) (Stage 13)
+        if (stageEnabled(13)) {
+            const bgRings = [sphereRadius + 0.4, sphereRadius + 1.0, sphereRadius + 1.8];
+            bgRings.forEach(rad => {
+                const ringGeo = new THREE.RingGeometry(rad, rad + 0.02, 64);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: 0x4f7fd6,
+                    transparent: true,
+                    opacity: 0.08,
+                    side: THREE.DoubleSide,
+                    blending: THREE.AdditiveBlending
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.position.z = -1.5; // positioned behind globe
+                ring.renderOrder = 2;
+                STATE.earthGroup.add(ring);
+
+                let speed;
+                if (isDebugMode) {
+                    speed = 0.002;
+                } else {
+                    speed = (Math.random() > 0.5 ? 0.002 : -0.002);
+                }
+
+                STATE.hudElements.push({ mesh: ring, type: 'bgRing', speed: speed });
+            });
+        }
+
+        // Very subtle animated radar sweep behind the Earth (z = -1.5) (Stage 14)
+        if (stageEnabled(14)) {
+            const radarSweepGeo = new THREE.RingGeometry(sphereRadius + 0.1, sphereRadius + 1.5, 64, 1, 0, Math.PI * 0.45);
+            const radarSweepMat = new THREE.MeshBasicMaterial({
+                color: 0x10b981,
                 transparent: true,
-                opacity: 0.08,
+                opacity: 0.1,
                 side: THREE.DoubleSide,
                 blending: THREE.AdditiveBlending
             });
-            const ring = new THREE.Mesh(ringGeo, ringMat);
-            ring.position.z = -1.5; // positioned behind globe
-            ring.renderOrder = 2;
-            STATE.earthGroup.add(ring);
-            STATE.hudElements.push({ mesh: ring, type: 'bgRing', speed: (Math.random() > 0.5 ? 0.002 : -0.002) });
-        });
+            const radarSweep = new THREE.Mesh(radarSweepGeo, radarSweepMat);
+            radarSweep.position.z = -1.5; // positioned behind globe
+            radarSweep.renderOrder = 2;
 
-        // Very subtle animated radar sweep behind the Earth (z = -1.5)
-        const radarSweepGeo = new THREE.RingGeometry(sphereRadius + 0.1, sphereRadius + 1.5, 64, 1, 0, Math.PI * 0.45);
-        const radarSweepMat = new THREE.MeshBasicMaterial({
-            color: 0x10b981,
-            transparent: true,
-            opacity: 0.1,
-            side: THREE.DoubleSide,
-            blending: THREE.AdditiveBlending
-        });
-        const radarSweep = new THREE.Mesh(radarSweepGeo, radarSweepMat);
-        radarSweep.position.z = -1.5; // positioned behind globe
-        radarSweep.renderOrder = 2;
-        STATE.earthGroup.add(radarSweep);
-        STATE.hudElements.push({ mesh: radarSweep, type: 'radarSweepBack', speed: 0.008 });
+            if (isDebugMode) {
+                // Freeze it at a visually clear angle
+                radarSweep.rotation.z = Math.PI / 4;
+            }
+
+            STATE.earthGroup.add(radarSweep);
+            STATE.hudElements.push({ mesh: radarSweep, type: 'radarSweepBack', speed: 0.008 });
+        }
     }
 
     function buildSSALabels() {
         if (!STATE.earthGroup || window.innerWidth < 768) return;
 
-        // Labels connected dynamically to moving satellites
-        const labelNames = ["SAT-LEO-01", "SAT-MEO-02", "SAT-GEO-03"];
+        // Labels connected dynamically to moving satellites (Stage 15)
+        if (stageEnabled(15)) {
+            const labelNames = ["SAT-LEO-01", "SAT-MEO-02", "SAT-GEO-03"];
 
-        labelNames.forEach((text, idx) => {
-            const labelGroup = new THREE.Group();
+            labelNames.forEach((text, idx) => {
+                const labelGroup = new THREE.Group();
 
-            // Create Canvas Texture for HUD labels
-            const canvas = document.createElement('canvas');
-            canvas.width = 120; canvas.height = 30;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'rgba(6, 13, 34, 0.85)';
-            ctx.fillRect(0, 0, 120, 30);
-            ctx.strokeStyle = 'rgba(96, 165, 250, 0.4)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(0, 0, 120, 30);
-            
-            ctx.fillStyle = '#60a5fa';
-            ctx.font = 'bold 9px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(text, 60, 18);
+                // Create Canvas Texture for HUD labels
+                const canvas = document.createElement('canvas');
+                canvas.width = 120; canvas.height = 30;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = 'rgba(6, 13, 34, 0.85)';
+                ctx.fillRect(0, 0, 120, 30);
+                ctx.strokeStyle = 'rgba(96, 165, 250, 0.4)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(0, 0, 120, 30);
 
-            const tex = new THREE.CanvasTexture(canvas);
-            const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.85 });
-            const sprite = new THREE.Sprite(spriteMat);
-            sprite.scale.set(1.5, 0.38, 1.0);
-            sprite.renderOrder = 4;
-            labelGroup.add(sprite);
+                ctx.fillStyle = '#60a5fa';
+                ctx.font = 'bold 9px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(text, 60, 18);
 
-            // Connect thin leader line from satellite position to floating label sprite
-            const lineMat = new THREE.LineBasicMaterial({
-                color: 0x60a5fa,
-                transparent: true,
-                opacity: 0.35
+                const tex = new THREE.CanvasTexture(canvas);
+                const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.85 });
+                const sprite = new THREE.Sprite(spriteMat);
+                sprite.scale.set(1.5, 0.38, 1.0);
+                sprite.renderOrder = 4;
+                labelGroup.add(sprite);
+
+                // Connect thin leader line from satellite position to floating label sprite
+                const lineMat = new THREE.LineBasicMaterial({
+                    color: 0x60a5fa,
+                    transparent: true,
+                    opacity: 0.35
+                });
+                const lineGeo = new THREE.BufferGeometry();
+                lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3)); // 2 vertices, 3 dimensions each
+                const line = new THREE.Line(lineGeo, lineMat);
+                line.renderOrder = 4;
+                labelGroup.add(line);
+
+                STATE.earthGroup.add(labelGroup);
+                STATE.labels.push({
+                    group: labelGroup,
+                    sprite: sprite,
+                    line: line,
+                    satIndex: idx, // binds label to satellite index
+                    pulse: idx * 2.0
+                });
             });
-            const lineGeo = new THREE.BufferGeometry();
-            lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3)); // 2 vertices, 3 dimensions each
-            const line = new THREE.Line(lineGeo, lineMat);
-            line.renderOrder = 4;
-            labelGroup.add(line);
-
-            STATE.earthGroup.add(labelGroup);
-            STATE.labels.push({
-                group: labelGroup,
-                sprite: sprite,
-                line: line,
-                satIndex: idx, // binds label to satellite index
-                pulse: idx * 2.0
-            });
-        });
+        }
     }
 
     function onWindowResize() {
@@ -659,8 +790,10 @@
     }
 
     function onMouseMove(event) {
-        STATE.targetMouseX = (event.clientX / window.innerWidth) * 2 - 1;
-        STATE.targetMouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        if (!isDebugMode || earthStage === 17) {
+            STATE.targetMouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            STATE.targetMouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
     }
 
     function handleVisibilityChange() {
@@ -678,10 +811,13 @@
         }
     }
 
+    let firstRenderDone = false;
+
     function animate() {
         STATE.animationFrameId = requestAnimationFrame(animate);
 
-        const motionSpeed = STATE.reducedMotion ? 0 : 1;
+        const isAnimated = !isDebugMode || earthStage === 17;
+        const motionSpeed = (STATE.reducedMotion || !isAnimated) ? 0 : 1;
         const baseSpeed = 0.0006 * motionSpeed;
 
         // Earth & Clouds continuous rotations
@@ -693,23 +829,35 @@
         }
 
         // Starfield slow rotations + mouse parallax offsets
-        STATE.mouseX += (STATE.targetMouseX - STATE.mouseX) * 0.04;
-        STATE.mouseY += (STATE.targetMouseY - STATE.mouseY) * 0.04;
+        if (isAnimated) {
+            STATE.mouseX += (STATE.targetMouseX - STATE.mouseX) * 0.04;
+            STATE.mouseY += (STATE.targetMouseY - STATE.mouseY) * 0.04;
+        } else {
+            STATE.mouseX = 0;
+            STATE.mouseY = 0;
+        }
 
         if (STATE.starsFar) {
-            STATE.starsFar.rotation.y -= baseSpeed * 0.08;
+            if (isAnimated) {
+                STATE.starsFar.rotation.y -= baseSpeed * 0.08;
+            }
             STATE.starsFar.position.x = STATE.mouseX * 0.8;
             STATE.starsFar.position.y = -STATE.mouseY * 0.8;
         }
         if (STATE.starsNear) {
-            STATE.starsNear.rotation.y -= baseSpeed * 0.12;
+            if (isAnimated) {
+                STATE.starsNear.rotation.y -= baseSpeed * 0.12;
+            }
             STATE.starsNear.position.x = STATE.mouseX * 2.0;
             STATE.starsNear.position.y = -STATE.mouseY * 2.0;
         }
 
         // Satellites orbital loop updates
         STATE.satellites.forEach((sat) => {
-            sat.angle += sat.config.speed * motionSpeed;
+            if (isAnimated) {
+                sat.angle += sat.config.speed * motionSpeed;
+                sat.pulse += 0.05 * motionSpeed;
+            }
             const x = Math.cos(sat.angle) * sat.config.radiusX;
             const y = Math.sin(sat.angle) * sat.config.radiusY;
 
@@ -718,16 +866,21 @@
             localPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), sat.config.angleY);
             sat.group.position.copy(localPos);
 
-            // Blinking navigation lights (blinks slowly)
+            // Blinking navigation lights
             if (sat.navLight) {
-                sat.pulse += 0.05 * motionSpeed; // Slower light pulse frequency
-                sat.navLight.visible = Math.sin(sat.pulse * 1.5) > 0;
+                if (isAnimated) {
+                    sat.navLight.visible = Math.sin(sat.pulse * 1.5) > 0;
+                } else {
+                    sat.navLight.visible = true; // Stay on in debug static mode
+                }
             }
         });
 
         // Occasional scanning pulses travelling along orbit paths
         STATE.scanningPulses.forEach((pulse) => {
-            pulse.angle += pulse.config.speed * pulse.speedMultiplier * motionSpeed;
+            if (isAnimated) {
+                pulse.angle += pulse.config.speed * pulse.speedMultiplier * motionSpeed;
+            }
             const x = Math.cos(pulse.angle) * pulse.config.radiusX;
             const y = Math.sin(pulse.angle) * pulse.config.radiusY;
 
@@ -738,56 +891,62 @@
         });
 
         // Orbits gentle glow shimmer animation
-        if (!STATE.reducedMotion) {
-            const time = performance.now() * 0.001;
-            
-            STATE.orbits.forEach(orb => {
-                const pulse = orb.initialOpacity + Math.sin(time * 1.5) * 0.05;
-                orb.material.opacity = Math.max(0.04, Math.min(0.3, pulse));
-            });
+        const time = isAnimated ? (performance.now() * 0.001) : 0;
 
-            // HUD Overlays & Radar Sweep rotations
-            STATE.hudElements.forEach(hud => {
+        STATE.orbits.forEach(orb => {
+            const pulse = orb.initialOpacity + Math.sin(time * 1.5) * 0.05;
+            orb.material.opacity = Math.max(0.04, Math.min(0.3, pulse));
+        });
+
+        // HUD Overlays & Radar Sweep rotations
+        STATE.hudElements.forEach(hud => {
+            if (isAnimated) {
                 if (hud.type === 'bgRing') {
                     hud.mesh.rotation.z += hud.speed;
                 } else if (hud.type === 'radarSweepBack') {
                     hud.mesh.rotation.z += hud.speed;
                 }
-            });
+            }
+        });
 
-            // Anchored Annotations connected to satellites via thin lines
-            STATE.labels.forEach(lbl => {
+        // Anchored Annotations connected to satellites via thin lines
+        STATE.labels.forEach(lbl => {
+            if (isAnimated) {
                 lbl.pulse += 0.02;
-                
-                // Get matching satellite pos
-                const sat = STATE.satellites[lbl.satIndex];
-                if (sat) {
-                    const satPos = sat.group.position;
-                    // Offset label card relative to satellite position
-                    const labelPos = satPos.clone().add(new THREE.Vector3(1.1, 0.9, 0.3));
-                    lbl.sprite.position.copy(labelPos);
-                    
-                    // Update connected leader line vertices dynamically
-                    const positions = lbl.line.geometry.attributes.position.array;
-                    positions[0] = satPos.x;
-                    positions[1] = satPos.y;
-                    positions[2] = satPos.z;
-                    positions[3] = labelPos.x;
-                    positions[4] = labelPos.y;
-                    positions[5] = labelPos.z;
-                    lbl.line.geometry.attributes.position.needsUpdate = true;
-                    
-                    // Soft label fade in/out
+            }
+
+            // Get matching satellite pos
+            const sat = STATE.satellites[lbl.satIndex];
+            if (sat) {
+                const satPos = sat.group.position;
+                const labelPos = satPos.clone().add(new THREE.Vector3(1.1, 0.9, 0.3));
+                lbl.sprite.position.copy(labelPos);
+
+                // Update connected leader line vertices dynamically
+                const positions = lbl.line.geometry.attributes.position.array;
+                positions[0] = satPos.x;
+                positions[1] = satPos.y;
+                positions[2] = satPos.z;
+                positions[3] = labelPos.x;
+                positions[4] = labelPos.y;
+                positions[5] = labelPos.z;
+                lbl.line.geometry.attributes.position.needsUpdate = true;
+
+                // Soft label fade in/out
+                if (isAnimated) {
                     lbl.sprite.material.opacity = 0.65 + Math.sin(lbl.pulse) * 0.25;
                     lbl.line.material.opacity = 0.25 + Math.sin(lbl.pulse) * 0.15;
+                } else {
+                    lbl.sprite.material.opacity = 0.85;
+                    lbl.line.material.opacity = 0.35;
                 }
-            });
-
-            // Slow atmospheric shimmer glow scale modulation
-            if (STATE.atmosphere) {
-                const atmosPulse = 1.0 + Math.sin(time * 0.8) * 0.004;
-                STATE.atmosphere.scale.set(atmosPulse, atmosPulse, atmosPulse);
             }
+        });
+
+        // Slow atmospheric shimmer glow scale modulation
+        if (STATE.atmosphere) {
+            const atmosPulse = 1.0 + Math.sin(time * 0.8) * 0.004;
+            STATE.atmosphere.scale.set(atmosPulse, atmosPulse, atmosPulse);
         }
 
         // Camera damping based on mouse movement
@@ -798,6 +957,12 @@
 
         if (STATE.renderer && STATE.scene && STATE.camera) {
             STATE.renderer.render(STATE.scene, STATE.camera);
+        }
+
+        // Signal that the textures and rendering layers are fully initialized
+        if (!firstRenderDone) {
+            firstRenderDone = true;
+            window.__EARTH_READY__ = true;
         }
     }
 

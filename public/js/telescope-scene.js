@@ -11,8 +11,8 @@
         beam: null,
         satellite: null,
         satelliteOrbitAngle: 0,
-        orbitRadiusX: 7.5,
-        orbitRadiusZ: 7.5,
+        orbitRadiusX: 5.0,
+        orbitRadiusZ: 5.0,
         orbitPlaneRotationX: 0.3,
         orbitPlaneRotationZ: 0.2,
         starfield: null,
@@ -22,7 +22,7 @@
         isViewportVisible: false,
         animationFrameId: null,
         reducedMotion: false,
-        cameraRotation: { theta: 0.8, phi: 1.1, radius: 12 },
+        cameraRotation: { theta: 0.8, phi: 1.1, radius: 14 },
         previousMousePosition: { x: 0, y: 0 },
         isDragging: false
     };
@@ -375,9 +375,8 @@
         TELE_STATE.telescopeTube.add(weight);
 
         // 10. Observation Beam (Child of Tube Group, points along Z axis)
-        const beamGeo = new THREE.CylinderGeometry(0.02, 0.35, 1.0, 16, 1, true);
+       const beamGeo = new THREE.CylinderGeometry(0.02, 0.35, 1.0, 16, 1, true);
         beamGeo.translate(0, 0.5, 0); // Pivot at the bottom
-        beamGeo.rotateX(Math.PI / 2); // Point along Z axis
         
         const beamMat = new THREE.MeshBasicMaterial({
             color: 0x4f7fd6,
@@ -388,10 +387,11 @@
         });
         
         TELE_STATE.beam = new THREE.Mesh(beamGeo, beamMat);
+        TELE_STATE.beam.rotation.x = Math.PI / 2; // Point along Z axis (rotated on the object, not baked into geometry, so scale.y still works)
         TELE_STATE.beam.position.z = 0.85; // Emanates from bezel aperture
         TELE_STATE.telescopeTube.add(TELE_STATE.beam);
 
-        TELE_STATE.scene.add(TELE_STATE.telescopeTube);
+        TELE_STATE.telescopeBase.add(TELE_STATE.telescopeTube);
     }
 
     function setupInteraction(container) {
@@ -499,7 +499,7 @@
             resetBtn.addEventListener('click', () => {
                 TELE_STATE.cameraRotation.theta = 0.8;
                 TELE_STATE.cameraRotation.phi = 1.1;
-                TELE_STATE.cameraRotation.radius = 12;
+                TELE_STATE.cameraRotation.radius = 14;
                 updateCamera();
                 if (TELE_STATE.reducedMotion || TELE_STATE.isPaused) {
                     renderSingleFrame();

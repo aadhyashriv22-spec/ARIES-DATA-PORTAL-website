@@ -48,6 +48,8 @@
                 <ul>
                     <li><a href="#main-content">Home</a></li>
                     <li><a href="#about">About</a></li>
+                    <li><a href="/demonstration.html">Demonstration</a></li>
+                    <li><a href="/team.html">Team</a></li>
                     <li><a href="#updates">Updates</a></li>
                     <li><a href="#access">Data Access</a></li>
                     <li><a href="#contact">Contact</a></li>
@@ -100,6 +102,14 @@
                         <li><a href="#about">SSA Programme</a></li>
                         <li><a href="#about">Research Infrastructure</a></li>
                         <li><a href="#about">Observatories</a></li>
+                    </ul>
+                </div>
+
+                <div class="drawer-group">
+                    <h5>Team &amp; Demonstration</h5>
+                    <ul>
+                        <li><a href="/team.html">Project Members</a></li>
+                        <li><a href="/demonstration.html">Optical Tracking Demo</a></li>
                     </ul>
                 </div>
 
@@ -192,25 +202,15 @@
         <section id="stats-strip" class="stats-strip" aria-label="Key Statistics">
             <div class="stat-item">
                 <span class="stat-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 21l4.5-9.5L18 4l3 3-8.5 10.5z" />
+                        <circle cx="17" cy="7" r="1.3" fill="currentColor" stroke="none" />
+                        <path d="M8 21l1.5-3M13 21l1-2.5" />
                     </svg>
                 </span>
                 <div class="stat-content">
-                    <span class="stat-number" data-target="18+">0</span>
-                    <span class="stat-label">Research Missions</span>
-                </div>
-            </div>
-            <div class="stat-item-divider" aria-hidden="true"></div>
-            <div class="stat-item">
-                <span class="stat-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
-                </span>
-                <div class="stat-content">
-                    <span class="stat-number" data-target="250+ TB">0</span>
-                    <span class="stat-label">Observational Data</span>
+                    <span class="stat-number" data-target="3">0</span>
+                    <span class="stat-label">Telescopes used in SSA</span>
                 </div>
             </div>
             <div class="stat-item-divider" aria-hidden="true"></div>
@@ -224,21 +224,22 @@
                     </svg>
                 </span>
                 <div class="stat-content">
-                    <span class="stat-number" data-target="40+">0</span>
-                    <span class="stat-label">Collaborating Institutes</span>
+                    <span class="stat-number" data-target="3">0</span>
+                    <span class="stat-label">Collaborating Organizations</span>
                 </div>
             </div>
             <div class="stat-item-divider" aria-hidden="true"></div>
             <div class="stat-item">
                 <span class="stat-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="12" rx="2" />
+                        <path d="M8 20h8M12 16v4" />
+                        <path d="M7 9l3 2 3-3 4 3" />
                     </svg>
                 </span>
                 <div class="stat-content">
-                    <span class="stat-number" data-target="24/7">0</span>
-                    <span class="stat-label">Data Availability</span>
+                    <span class="stat-number" data-target="3">0</span>
+                    <span class="stat-label">Conferences</span>
                 </div>
             </div>
         </section>
@@ -317,105 +318,6 @@
                     <p>Secure observation sharing mechanisms for authorized research projects and partner academic
                         institutions.</p>
                 </div>
-        </section>
-
-        <!-- Interactive Observatory Demonstration Section -->
-        <section id="observatory-vis-sec" class="observatory-vis-section" aria-labelledby="observatory-vis-heading">
-            <div class="section-header">
-                <p class="section-eyebrow">Interactive Demonstration</p>
-                <h2 id="observatory-vis-heading">Interactive Optical Tracking Demonstration</h2>
-                <p class="section-subtitle-description">
-                    This educational WebGL simulation illustrates how a ground-based optical telescope may follow a
-                    resident space object across the night sky.
-                </p>
-                <div class="simulation-notice">
-                    <span class="info-icon" aria-hidden="true">&#9432;</span>
-                    <span>Simulation only — not connected to live telescope, satellite, or backend data.</span>
-                </div>
-            </div>
-
-            <div class="vis-container">
-                <!-- Left Column: Educational Content & Technical Explanation -->
-                <div class="vis-info-panel">
-                    <h3>How the Demonstration Works</h3>
-
-                    <div class="demo-steps">
-                        <div class="demo-step">
-                            <div class="demo-step-header">
-                                <span class="step-icon" aria-hidden="true">&#9678;</span>
-                                <span class="demo-step-number">Step 1</span>
-                                <h4>Predicted Path</h4>
-                            </div>
-                            <p>A simulated object moves along an illustrative orbital trajectory.</p>
-                        </div>
-
-                        <div class="demo-step">
-                            <div class="demo-step-header">
-                                <span class="step-icon" aria-hidden="true">&#8635;</span>
-                                <span class="demo-step-number">Step 2</span>
-                                <h4>Telescope Alignment</h4>
-                            </div>
-                            <p>The telescope mount rotates and tilts toward the simulated target.</p>
-                        </div>
-
-                        <div class="demo-step">
-                            <div class="demo-step-header">
-                                <span class="step-icon" aria-hidden="true">&#8605;</span>
-                                <span class="demo-step-number">Step 3</span>
-                                <h4>Optical Line of Sight</h4>
-                            </div>
-                            <p>A visual beam represents the telescope’s observational direction.</p>
-                        </div>
-
-                        <div class="demo-step">
-                            <div class="demo-step-header">
-                                <span class="step-icon" aria-hidden="true">&#9744;</span>
-                                <span class="demo-step-number">Step 4</span>
-                                <h4>Observation Capture</h4>
-                            </div>
-                            <p>The demonstration illustrates how images and tracking measurements may be collected.</p>
-                        </div>
-                    </div>
-
-                    <div class="vis-actions demo-controls">
-                        <button id="vis-pause-btn" class="btn-primary" aria-label="Pause telescope simulation animation"
-                            aria-pressed="false">
-                            Pause Animation
-                        </button>
-                        <button id="vis-reset-btn" class="btn-secondary" aria-label="Reset camera view">
-                            Reset View
-                        </button>
-                    </div>
-
-                    <p class="demo-disclaimer">
-                        This visualization is an educational representation of optical tracking concepts. It does not
-                        display live observatory operations, real satellite positions, or current ARIES tracking data.
-                    </p>
-                </div>
-
-                <!-- Right Column: WebGL Interactive Scene Panel -->
-                <div class="vis-canvas-panel">
-                    <!-- WebGL Container -->
-                    <div id="telescope-canvas-container" class="telescope-canvas-container" aria-hidden="true">
-                        <div class="vis-badge">Interactive WebGL Demonstration</div>
-                        <div class="scene-mode">SIMULATED</div>
-
-                        <div id="telescope-canvas" class="telescope-canvas"></div>
-
-                        <!-- Overlay Labels -->
-                        <div class="canvas-overlay-label scene-label-left">Illustrative orbital path</div>
-                        <div class="canvas-overlay-label scene-label-right">Not connected to live systems</div>
-                        <div class="canvas-overlay-label scene-label-center"
-                            style="top: 35%; left: 50%; transform: translate(-50%, -50%); display: none;"
-                            id="simulated-target-label">Simulated target</div>
-                    </div>
-
-                    <!-- Static SVG Fallback for WebGL Unavailable / Reduced Motion -->
-                    <div id="telescope-fallback" class="telescope-fallback-container" style="display: none;">
-                        <img src="/assets/ssa_observation_demo.svg"
-                            alt="Illustration explaining optical telescope tracking" class="fallback-svg-img">
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -432,7 +334,14 @@
                     <h3>Latest Observation Campaign</h3>
                     <p>Devasthal Optical Telescope successfully completed a coordinate tracking run of low-earth orbit
                         communication satellites.</p>
-                    <a href="#about" class="btn-read-more">Read More <span aria-hidden="true">&rarr;</span></a>
+                    <button type="button" class="btn-read-more" aria-expanded="false" aria-controls="update-detail-1">
+                        Read More <span class="read-more-arrow" aria-hidden="true">&rarr;</span>
+                    </button>
+                    <div class="update-detail" id="update-detail-1">
+                        <p>The tracking run spanned six low-Earth orbit communication satellites over three
+                            consecutive nights, validating pointing accuracy and data pipeline handoff ahead of the
+                            upcoming SSA observing season.</p>
+                    </div>
                 </article>
 
                 <article class="update-card">
@@ -440,15 +349,30 @@
                     <h3>Recently Added Dataset</h3>
                     <p>Calibrated FITS observation imagery for orbital sector Leo-N2 has been indexed and is available
                         for research download.</p>
-                    <a href="/portal" class="btn-read-more">View Dataset <span aria-hidden="true">&rarr;</span></a>
+                    <button type="button" class="btn-read-more" aria-expanded="false" aria-controls="update-detail-2">
+                        View Dataset <span class="read-more-arrow" aria-hidden="true">&rarr;</span>
+                    </button>
+                    <div class="update-detail" id="update-detail-2">
+                        <p>The Leo-N2 sector dataset includes calibrated FITS frames, astrometric solutions, and
+                            accompanying observation logs from the latest tracking pass.</p>
+                        <a href="/portal" class="update-detail-link">Open in Data Portal <span aria-hidden="true">&rarr;</span></a>
+                    </div>
                 </article>
 
                 <article class="update-card">
                     <span class="update-date">2026-06-28</span>
-                    <h3>Scheduled Maintenance</h3>
-                    <p>Google Drive and OneDrive API sync hooks will undergo routine upgrades on August 3rd. Short
-                        interruptions may occur.</p>
-                    <a href="#contact" class="btn-read-more">Read Notice <span aria-hidden="true">&rarr;</span></a>
+                    <h3>New SSA Collaboration</h3>
+                    <p>ARIES continues to expand its Space Situational Awareness partnership network with national
+                        space and defence research organisations.</p>
+                    <button type="button" class="btn-read-more" aria-expanded="false" aria-controls="update-detail-3">
+                        Learn More <span class="read-more-arrow" aria-hidden="true">&rarr;</span>
+                    </button>
+                    <div class="update-detail" id="update-detail-3">
+                        <p>This builds on ARIES's existing collaborations with ISRO, DRDO's Instruments Research
+                            &amp; Development Establishment (IRDE), and Bharat Electronics Limited (BEL) — covering
+                            joint development of ground-based optical tracking systems, electro-optics research, and
+                            AI/ML-based image processing for space object monitoring.</p>
+                    </div>
                 </article>
             </div>
         </section>
@@ -570,11 +494,9 @@
     <!-- Scripts Loading Sequence -->
     <!-- 1. Three.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
-    <!-- 2. Three.js WebGL Scene -->
+    <!-- 2. Three.js WebGL Scene (drives the hero Earth canvas) -->
     <script src="/js/three-scene.js" defer></script>
-    <!-- 3. Interactive Telescope Visualization -->
-    <script src="/js/telescope-scene.js" defer></script>
-    <!-- 4. UI Interactions -->
+    <!-- 3. UI Interactions -->
     <script src="/js/landing.js" defer></script>
 
 </body>

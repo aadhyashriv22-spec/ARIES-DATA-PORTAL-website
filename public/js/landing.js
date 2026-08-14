@@ -8,6 +8,7 @@
         setupStatsCounters();
         setupBackToTop();
         setupRevealAnimations();
+        setupUpdateCardToggles();
     });
 
     // 1. Navigation Drawer (ESA inspired)
@@ -266,6 +267,26 @@
         revealElements.forEach(el => {
             el.classList.add('reveal-on-scroll');
             revealObserver.observe(el);
+        });
+    }
+
+    // 7. Latest Updates — expand-in-place details instead of navigating away.
+    // Scoped per-card via DOM structure (not id lookup) so each button can
+    // only ever toggle its own card's panel, regardless of anything else on
+    // the page.
+    function setupUpdateCardToggles() {
+        const cards = document.querySelectorAll('.update-card');
+
+        cards.forEach((card) => {
+            const btn = card.querySelector('.btn-read-more');
+            const detail = card.querySelector('.update-detail');
+            if (!btn || !detail) return;
+
+            btn.addEventListener('click', () => {
+                const isOpen = btn.classList.toggle('open');
+                detail.classList.toggle('open', isOpen);
+                btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
         });
     }
 

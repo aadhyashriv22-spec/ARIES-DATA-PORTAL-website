@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Team Member — ARIES SSA Data Portal</title>
+    <meta name="description" content="ARIES SSA project team member profile">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/landing.css">
+    <link rel="stylesheet" href="/css/team.css">
+</head>
+
+<body>
+
+    <!-- Decorative starfield background (reused from portal.css, since this page has no hero video) -->
+    <div class="space-background-system" aria-hidden="true">
+        <div class="stars-layer stars-distant"></div>
+        <div class="stars-layer stars-mid"></div>
+        <div class="stars-layer stars-twinkle"></div>
+    </div>
+
+    <a class="skip-link" href="#main-content">Skip to profile content</a>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <button id="hamburger-btn" class="hamburger-btn" aria-label="Open navigation drawer"
+                    aria-expanded="false" aria-controls="nav-drawer">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+                <div class="brand">
+                    <span class="brand-logo-mark" aria-hidden="true">A</span>
+                    <div class="brand-text">
+                        <span class="brand-name">ARIES</span>
+                        <span class="brand-subtitle">SSA Data Portal</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="desktop-nav" aria-label="Desktop Primary">
+                <ul>
+                    <li><a href="/landing.html#main-content">Home</a></li>
+                    <li><a href="/landing.html#about">About</a></li>
+                    <li><a href="/demonstration.html">Demonstration</a></li>
+                    <li><a href="/team.html" class="active" aria-current="page">Team</a></li>
+                    <li><a href="/landing.html#updates">Updates</a></li>
+                    <li><a href="/landing.html#access">Data Access</a></li>
+                    <li><a href="/landing.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-actions">
+                <a class="btn-portal-access" href="/portal">Access Portal</a>
+            </div>
+        </div>
+    </header>
+
+    <div id="drawer-overlay" class="drawer-overlay" aria-hidden="true"></div>
+    <nav id="nav-drawer" class="nav-drawer" aria-label="Main Navigation Drawer" aria-hidden="true">
+        <div class="drawer-header">
+            <div class="drawer-brand">
+                <span class="brand-logo-mark" aria-hidden="true">A</span>
+                <div>
+                    <h3>ARIES SSA Portal</h3>
+                    <p>Observational Data Repository</p>
+                </div>
+            </div>
+            <button id="close-drawer-btn" class="close-drawer-btn" aria-label="Close navigation drawer">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <div class="drawer-content">
+            <div class="drawer-meta-info">
+                <h4>Space Situational Awareness</h4>
+                <p>Government Scientific Research Infrastructure</p>
+            </div>
+
+            <div class="drawer-groups">
+                <div class="drawer-group">
+                    <h5>Home</h5>
+                    <ul>
+                        <li><a href="/landing.html#main-content">Portal Home</a></li>
+                    </ul>
+                </div>
+
+                <div class="drawer-group">
+                    <h5>About</h5>
+                    <ul>
+                        <li><a href="/landing.html#about">About ARIES</a></li>
+                        <li><a href="/landing.html#about">SSA Programme</a></li>
+                        <li><a href="/landing.html#about">Research Infrastructure</a></li>
+                        <li><a href="/landing.html#about">Observatories</a></li>
+                    </ul>
+                </div>
+
+                <div class="drawer-group">
+                    <h5>Team &amp; Demonstration</h5>
+                    <ul>
+                        <li><a href="/team.html">Project Members</a></li>
+                        <li><a href="/demonstration.html">Optical Tracking Demo</a></li>
+                    </ul>
+                </div>
+
+                <div class="drawer-group">
+                    <h5>Data Repository</h5>
+                    <ul>
+                        <li><a href="/portal">Optical Tracking Data</a></li>
+                        <li><a href="/portal">Satellite Observations</a></li>
+                        <li><a href="/portal">Telemetry Logs</a></li>
+                        <li><a href="/portal">Observation Sessions</a></li>
+                        <li><a href="/portal">Data Products</a></li>
+                        <li><a href="/portal">Downloads</a></li>
+                    </ul>
+                </div>
+
+                <div class="drawer-group">
+                    <h5>Research</h5>
+                    <ul>
+                        <li><a href="/landing.html#about">Projects</a></li>
+                        <li><a href="/landing.html#about">Collaborations</a></li>
+                        <li><a href="/landing.html#contact">Publications</a></li>
+                        <li><a href="/landing.html#access">Documentation</a></li>
+                    </ul>
+                </div>
+
+                <div class="drawer-group">
+                    <h5>Resources</h5>
+                    <ul>
+                        <li><a href="/landing.html#access">User Guide</a></li>
+                        <li><a href="/landing.html#access">API Documentation</a></li>
+                        <li><a href="/landing.html#access">Access Policy</a></li>
+                    </ul>
+                </div>
+
+                <div class="drawer-group">
+                    <h5>Contact</h5>
+                    <ul>
+                        <li><a href="/landing.html#contact">Contact ARIES</a></li>
+                        <li><a href="/landing.html#contact">Technical Support</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="drawer-footer">
+            <a class="btn-drawer-action primary" href="/portal">Access Data Portal</a>
+            <a class="btn-drawer-action secondary" href="/landing.html#contact">Request Research Access</a>
+        </div>
+    </nav>
+
+    <main id="main-content" class="portal-container team-page-container">
+        <div class="breadcrumb member-breadcrumb">
+            <span onclick="window.location.href='/team.html'">Team</span>
+            <span aria-hidden="true">&rsaquo;</span>
+            <span id="breadcrumb-name">&hellip;</span>
+        </div>
+
+        <!-- Populated entirely by member.js based on ?id= in the URL -->
+        <div id="member-root">
+            <div class="loading">Loading profile&hellip;</div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-top-line"></div>
+        <div class="footer-grid">
+            <div class="footer-column">
+                <h4>ARIES</h4>
+                <ul>
+                    <li><a href="/landing.html#main-content">Mission</a></li>
+                    <li><a href="/landing.html#about">About Us</a></li>
+                    <li><a href="/landing.html#about">SSA Programme</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/landing.html#access">Documentation</a></li>
+                    <li><a href="/portal">Downloads</a></li>
+                    <li><a href="/landing.html#access">User Guide</a></li>
+                    <li><a href="/landing.html#access">FAQs</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="mailto:rso@aries-ssa.com">rso@aries-ssa.com</a></li>
+                    <li>Manora Peak, Nainital</li>
+                    <li>Uttarakhand, India</li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="/portal">Data Portal</a></li>
+                    <li><a href="/portal">Repository</a></li>
+                    <li><a href="/landing.html#access">Access Policy</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <span class="copyright">&copy; 2026 Aryabhatta Research Institute of Observational Sciences. All rights
+                    reserved.</span>
+                <div class="footer-bottom-links">
+                    <a href="/landing.html#access">Privacy Policy</a>
+                    <a href="/landing.html#access">Accessibility Statement</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div class="floating-controls">
+        <button id="back-to-top" class="floating-btn" aria-label="Back to top of the page" title="Back to top">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+        </button>
+    </div>
+
+    <script src="/js/landing.js" defer></script>
+    <script src="/js/team-data.js" defer></script>
+    <script src="/js/member.js" defer></script>
+
+</body>
+
+</html>
