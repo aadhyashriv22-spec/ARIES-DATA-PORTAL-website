@@ -173,6 +173,13 @@
 
             <div class="hero-overlay"></div>
 
+            <!-- Sun WebGL layer — full-hero, sits above hero-overlay (see
+                 .sun-canvas z-index/DOM-order note in landing.css) so the
+                 overlay's darkening gradient doesn't dim the sun sitting in
+                 the corner, but still below .hero-content so text/buttons
+                 stay on top and clickable. Driven by /js/sun-scene.js. -->
+            <div id="sun-canvas" class="sun-canvas" aria-hidden="true"></div>
+
             <div class="hero-content">
                 <div class="hero-text-side">
                     <p class="hero-eyebrow">Space Situational Awareness</p>
@@ -496,6 +503,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     <!-- 2. Three.js WebGL Scene (drives the hero Earth canvas) -->
     <script src="/js/three-scene.js" defer></script>
+    <!-- 2b. Sun WebGL scene (drives the #sun-canvas layer — separate
+         scene/camera from three-scene.js's Earth) -->
+    <script src="/js/sun-scene.js" defer></script>
     <!-- 3. UI Interactions -->
     <script src="/js/landing.js" defer></script>
 

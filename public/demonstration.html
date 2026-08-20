@@ -17,6 +17,7 @@
          same reasoning as team.html); landing.css second for header/drawer/section styles -->
     <link rel="stylesheet" href="/css/portal.css">
     <link rel="stylesheet" href="/css/landing.css">
+    <link rel="stylesheet" href="/css/demonstration.css">
 </head>
 
 <body>
@@ -134,99 +135,223 @@
 
     <main id="main-content" style="padding-top: var(--header-height, 80px);">
 
-        <!-- Interactive Observatory Demonstration Section (recovered from the original landing.html) -->
-        <section id="observatory-vis-sec" class="observatory-vis-section" aria-labelledby="observatory-vis-heading">
-            <div class="section-header">
-                <p class="section-eyebrow">Interactive Demonstration</p>
-                <h2 id="observatory-vis-heading">Interactive Optical Tracking Demonstration</h2>
-                <p class="section-subtitle-description">
-                    This educational WebGL simulation illustrates how a ground-based optical telescope may follow a
-                    resident space object across the night sky.
-                </p>
-                <div class="simulation-notice">
-                    <span class="info-icon" aria-hidden="true">&#9432;</span>
-                    <span>Simulation only — not connected to live telescope, satellite, or backend data.</span>
+        <!-- Demonstration dashboard — two-column layout: left is the
+             original telescope+satellite optical-tracking WebGL scene
+             (see telescope-scene.js), right is a course-style content
+             panel (chapters, tutorials, presentations with an upload
+             placeholder). Bottom stats bar is explicitly illustrative —
+             see the disclaimer note — matching the "Simulation only"
+             framing already used elsewhere on this site. -->
+        <section class="demo-dashboard-section" aria-labelledby="demo-dashboard-heading">
+            <div class="portal-intro">
+                <h1 id="demo-dashboard-heading">Interactive Optical Tracking Demonstration</h1>
+                <p>Optical tracking uses ground-based telescopes to observe reflected sunlight from satellites and
+                    orbital debris, recording precise angular measurements as objects pass overhead. Combined with
+                    orbit determination techniques, these observations help build and refine a catalog of tracked
+                    objects — supporting collision avoidance, re-entry prediction, and broader space situational
+                    awareness efforts. The simulation below illustrates how a telescope mount rotates and tilts to
+                    follow a simulated target, alongside reference training material on the underlying data
+                    acquisition and analysis methods.</p>
+                <div class="demo-topic-tags">
+                    <span class="demo-topic-tag">Optical Tracking</span>
+                    <span class="demo-topic-tag">Orbit Determination</span>
+                    <span class="demo-topic-tag">Conjunction Screening</span>
+                    <span class="demo-topic-tag">Data Fusion</span>
                 </div>
             </div>
 
-            <div class="vis-container">
-                <div class="vis-info-panel">
-                    <h3>How the Demonstration Works</h3>
-
-                    <div class="demo-steps">
-                        <div class="demo-step">
-                            <div class="demo-step-header">
-                                <span class="step-icon" aria-hidden="true">&#9678;</span>
-                                <span class="demo-step-number">Step 1</span>
-                                <h4>Predicted Path</h4>
-                            </div>
-                            <p>A simulated object moves along an illustrative orbital trajectory.</p>
-                        </div>
-
-                        <div class="demo-step">
-                            <div class="demo-step-header">
-                                <span class="step-icon" aria-hidden="true">&#8635;</span>
-                                <span class="demo-step-number">Step 2</span>
-                                <h4>Telescope Alignment</h4>
-                            </div>
-                            <p>The telescope mount rotates and tilts toward the simulated target.</p>
-                        </div>
-
-                        <div class="demo-step">
-                            <div class="demo-step-header">
-                                <span class="step-icon" aria-hidden="true">&#8605;</span>
-                                <span class="demo-step-number">Step 3</span>
-                                <h4>Optical Line of Sight</h4>
-                            </div>
-                            <p>A visual beam represents the telescope's observational direction.</p>
-                        </div>
-
-                        <div class="demo-step">
-                            <div class="demo-step-header">
-                                <span class="step-icon" aria-hidden="true">&#9744;</span>
-                                <span class="demo-step-number">Step 4</span>
-                                <h4>Observation Capture</h4>
-                            </div>
-                            <p>The demonstration illustrates how images and tracking measurements may be collected.</p>
-                        </div>
+            <div class="demo-dashboard-grid">
+                <!-- LEFT: WebGL telescope-tracking visualization card.
+                     Structure below matches exactly what telescope-scene.js
+                     expects (#telescope-canvas-container /
+                     #telescope-canvas / #telescope-fallback /
+                     #vis-pause-btn / #vis-reset-btn) — this is the
+                     original telescope+satellite tracking scene, not the
+                     Earth+orbits scene from the previous version of this
+                     page. Its setupButtons() sets button.textContent
+                     directly, so these two buttons are plain text (no
+                     icon+span structure) to stay compatible. -->
+                <div class="demo-viz-card">
+                    <div class="demo-viz-card-header">
+                        <span class="demo-live-badge">
+                            <span class="demo-live-dot" aria-hidden="true"></span>
+                            Live Simulation
+                        </span>
+                        <span class="demo-viz-scale-note">Not connected to live systems</span>
                     </div>
 
-                    <div class="vis-actions demo-controls">
-                        <button id="vis-pause-btn" class="btn-primary" aria-label="Pause telescope simulation animation"
-                            aria-pressed="false">
-                            Pause Animation
-                        </button>
-                        <button id="vis-reset-btn" class="btn-secondary" aria-label="Reset camera view">
-                            Reset View
-                        </button>
+                    <div id="telescope-canvas-container" class="demo-orbit-canvas" aria-hidden="true">
+                        <div id="telescope-canvas" class="demo-telescope-canvas-inner"></div>
+                    </div>
+
+                    <div id="telescope-fallback" class="demo-orbit-canvas demo-telescope-fallback" style="display: none;">
+                        <img src="/assets/ssa_observation_demo.svg"
+                            alt="Illustration explaining optical telescope tracking" class="demo-fallback-svg-img">
+                    </div>
+
+                    <div class="demo-viz-card-controls">
+                        <button id="vis-pause-btn" class="demo-orbit-btn demo-orbit-btn-text" type="button"
+                            aria-pressed="false">Pause Animation</button>
+                        <button id="vis-reset-btn" class="demo-orbit-btn demo-orbit-btn-text" type="button">Reset
+                            View</button>
                     </div>
 
                     <p class="demo-disclaimer">
-                        This visualization is an educational representation of optical tracking concepts. It does not
-                        display live observatory operations, real satellite positions, or current ARIES tracking data.
+                        This visualization is an educational representation of optical tracking concepts. It does
+                        not display live observatory operations, real satellite positions, or current ARIES
+                        tracking data. Drag to rotate the view.
                     </p>
                 </div>
 
-                <div class="vis-canvas-panel">
-                    <div id="telescope-canvas-container" class="telescope-canvas-container" aria-hidden="true">
-                        <div class="vis-badge">Interactive WebGL Demonstration</div>
-                        <div class="scene-mode">SIMULATED</div>
-
-                        <div id="telescope-canvas" class="telescope-canvas"></div>
-
-                        <div class="canvas-overlay-label scene-label-left">Illustrative orbital path</div>
-                        <div class="canvas-overlay-label scene-label-right">Not connected to live systems</div>
-                        <div class="canvas-overlay-label scene-label-center"
-                            style="top: 35%; left: 50%; transform: translate(-50%, -50%); display: none;"
-                            id="simulated-target-label">Simulated target</div>
+                <!-- RIGHT: course-style content panel -->
+                <div class="demo-content-card">
+                    <div class="demo-tabs" role="tablist" aria-label="Demonstration content sections">
+                        <button class="demo-tab active" type="button" role="tab" aria-selected="true">Chapters</button>
+                        <button class="demo-tab" type="button" role="tab" aria-selected="false">Tutorials</button>
+                        <button class="demo-tab" type="button" role="tab" aria-selected="false">Presentations</button>
                     </div>
 
-                    <div id="telescope-fallback" class="telescope-fallback-container" style="display: none;">
-                        <img src="/assets/ssa_observation_demo.svg"
-                            alt="Illustration explaining optical telescope tracking" class="fallback-svg-img">
+                    <div class="demo-chapter-list">
+                        <div class="demo-chapter-item">
+                            <span class="demo-chapter-num">01</span>
+                            <div class="demo-chapter-body">
+                                <div class="demo-chapter-title-row">
+                                    <span class="demo-chapter-title">Orbital Mechanics Fundamentals</span>
+                                    <span class="demo-chapter-duration">12 min</span>
+                                </div>
+                                <div class="demo-chapter-progress-track">
+                                    <div class="demo-chapter-progress-fill" style="width: 25%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="demo-chapter-item">
+                            <span class="demo-chapter-num">02</span>
+                            <div class="demo-chapter-body">
+                                <div class="demo-chapter-title-row">
+                                    <span class="demo-chapter-title">Optical Tracking Principles</span>
+                                    <span class="demo-chapter-duration">16 min</span>
+                                </div>
+                                <div class="demo-chapter-progress-track">
+                                    <div class="demo-chapter-progress-fill" style="width: 50%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="demo-chapter-item">
+                            <span class="demo-chapter-num">03</span>
+                            <div class="demo-chapter-body">
+                                <div class="demo-chapter-title-row">
+                                    <span class="demo-chapter-title">Data Acquisition &amp; Reduction</span>
+                                    <span class="demo-chapter-duration">18 min</span>
+                                </div>
+                                <div class="demo-chapter-progress-track">
+                                    <div class="demo-chapter-progress-fill" style="width: 10%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="demo-chapter-item">
+                            <span class="demo-chapter-num">04</span>
+                            <div class="demo-chapter-body">
+                                <div class="demo-chapter-title-row">
+                                    <span class="demo-chapter-title">Orbit Determination &amp; Prediction</span>
+                                    <span class="demo-chapter-duration">20 min</span>
+                                </div>
+                                <div class="demo-chapter-progress-track">
+                                    <div class="demo-chapter-progress-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="demo-chapter-item">
+                            <span class="demo-chapter-num">05</span>
+                            <div class="demo-chapter-body">
+                                <div class="demo-chapter-title-row">
+                                    <span class="demo-chapter-title">SSA Applications &amp; Use Cases</span>
+                                    <span class="demo-chapter-duration">15 min</span>
+                                </div>
+                                <div class="demo-chapter-progress-track">
+                                    <div class="demo-chapter-progress-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="demo-view-all-btn" type="button">View All Chapters</button>
+
+                    <div class="demo-presentations-section">
+                        <div class="demo-presentations-header">
+                            <h3>Weekly Presentations</h3>
+                            <a href="#" class="demo-view-all-link">View All</a>
+                        </div>
+
+                        <ul class="demo-file-list">
+                            <li class="demo-file-item">
+                                <span class="demo-file-icon demo-file-icon-pdf" aria-hidden="true">PDF</span>
+                                <span class="demo-file-name">Collision Avoidance &amp; Conjunction Screening</span>
+                                <span class="demo-file-date">May 15</span>
+                            </li>
+                            <li class="demo-file-item">
+                                <span class="demo-file-icon demo-file-icon-ppt" aria-hidden="true">PPT</span>
+                                <span class="demo-file-name">Space Debris Tracking Overview</span>
+                                <span class="demo-file-date">May 8</span>
+                            </li>
+                            <li class="demo-file-item">
+                                <span class="demo-file-icon demo-file-icon-pdf" aria-hidden="true">PDF</span>
+                                <span class="demo-file-name">Advances in Optical SSA Instrumentation</span>
+                                <span class="demo-file-date">May 1</span>
+                            </li>
+                        </ul>
+
+                        <!-- Upload placeholder — decorative only (no backend
+                             wired up); shows the selected filename as a
+                             lightweight local preview so it reads as
+                             functional-in-spirit rather than dead UI. -->
+                        <label for="demo-file-upload" class="demo-upload-placeholder">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span id="demo-upload-label-text">Click or drag to add a PDF or PPT</span>
+                            <input type="file" id="demo-file-upload" accept=".pdf,.ppt,.pptx" hidden>
+                        </label>
                     </div>
                 </div>
             </div>
+
+            <!-- Stats bar — explicitly illustrative, matching the
+                 "Simulation only" framing used throughout this page rather
+                 than implying connection to real tracking systems. -->
+            <div class="demo-stats-bar">
+                <div class="demo-stat-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                    <div>
+                        <span class="demo-stat-value">1,246</span>
+                        <span class="demo-stat-label">Objects Tracked</span>
+                    </div>
+                </div>
+                <div class="demo-stat-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="2"/><line x1="6" y1="11" x2="6" y2="13"/></svg>
+                    <div>
+                        <span class="demo-stat-value">512</span>
+                        <span class="demo-stat-label">Active Satellites</span>
+                    </div>
+                </div>
+                <div class="demo-stat-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <div>
+                        <span class="demo-stat-value">4</span>
+                        <span class="demo-stat-label">Regions Monitored</span>
+                    </div>
+                </div>
+                <div class="demo-stat-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <div>
+                        <span class="demo-stat-value" id="demo-last-updated">just now</span>
+                        <span class="demo-stat-label">Last Updated</span>
+                    </div>
+                </div>
+            </div>
+            <p class="demo-stats-disclaimer">Illustrative figures for demonstration purposes — not connected to live
+                tracking data.</p>
         </section>
 
     </main>
@@ -240,11 +365,58 @@
         </div>
     </footer>
 
-    <!-- Three.js CDN + the telescope demo script. three-scene.js is intentionally NOT
-         loaded here — that one drives the hero Earth canvas on landing.html only. -->
+    <!-- Three.js CDN + the new orbital demo scene. -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     <script src="/js/telescope-scene.js" defer></script>
     <script src="/js/landing.js" defer></script>
+
+    <script>
+        (function () {
+            document.addEventListener('DOMContentLoaded', function () {
+                // Tab switching — Chapters / Tutorials / Presentations.
+                // Only "Chapters" has real content wired up right now;
+                // the other two swap the active state so the UI reads as
+                // functional, without fabricating content for sections
+                // that don't exist yet.
+                var tabs = document.querySelectorAll('.demo-tab');
+                tabs.forEach(function (tab) {
+                    tab.addEventListener('click', function () {
+                        tabs.forEach(function (t) {
+                            t.classList.remove('active');
+                            t.setAttribute('aria-selected', 'false');
+                        });
+                        tab.classList.add('active');
+                        tab.setAttribute('aria-selected', 'true');
+                    });
+                });
+
+                // Upload placeholder — decorative, no backend. Shows the
+                // chosen filename locally so it doesn't feel like dead UI,
+                // without claiming to actually upload anything anywhere.
+                var fileInput = document.getElementById('demo-file-upload');
+                var uploadLabelText = document.getElementById('demo-upload-label-text');
+                if (fileInput && uploadLabelText) {
+                    fileInput.addEventListener('change', function () {
+                        if (fileInput.files && fileInput.files[0]) {
+                            uploadLabelText.textContent = fileInput.files[0].name + ' selected (not uploaded — demo only)';
+                        }
+                    });
+                }
+
+                // "Last Updated" — a simple relative-time readout,
+                // consistent with the stats bar's own "illustrative
+                // figures" disclaimer.
+                var lastUpdatedEl = document.getElementById('demo-last-updated');
+                if (lastUpdatedEl) {
+                    var loadTime = Date.now();
+                    setInterval(function () {
+                        var mins = Math.floor((Date.now() - loadTime) / 60000);
+                        lastUpdatedEl.textContent = mins < 1 ? 'just now' : (mins + ' min ago');
+                    }, 15000);
+                }
+            });
+        })();
+    </script>
 
 </body>
 
