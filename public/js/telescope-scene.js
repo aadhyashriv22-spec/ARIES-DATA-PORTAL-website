@@ -16,7 +16,8 @@
         orbitPlaneRotationX: 0.3,
         orbitPlaneRotationZ: 0.2,
         starfield: null,
-        constellations: null,
+        starLayers: [], // layered Points objects (dim/mid/bright) for twinkle animation
+        constellationGroups: [], // { group, glowSprites: [{sprite, mat, baseOpacity, baseScale, phase, speed}] }
         isPaused: false,
         isTabActive: true,
         isViewportVisible: false,
@@ -105,7 +106,13 @@
         TELE_STATE.scene.fog = new THREE.FogExp2(0x050811, 0.015);
 
         // Camera
-        TELE_STATE.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        // FOV widened from 45 -> 58 specifically to give the 4 distant
+        // constellations (placed ~27-28deg off-axis from the default view,
+        // see CONSTELLATION_DATA positions below) comfortable margin inside
+        // the frustum. Camera position/orbit math, target, and the
+        // telescope's own composition are untouched — this only reveals
+        // more surrounding space, it doesn't move or zoom toward anything.
+        TELE_STATE.camera = new THREE.PerspectiveCamera(58, width / height, 0.1, 1000);
         updateCamera();
 
         // Renderer
@@ -139,91 +146,377 @@
         window.addEventListener('resize', onResize);
     }
 
-    function buildStarfield() {
-        const starCount = window.innerWidth < 768 ? 150 : 400;
-        const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(starCount * 3);
-        const colors = new Float32Array(starCount * 3);
-
-        for (let i = 0; i < starCount; i++) {
-            // Distribute on sphere
-            const u = Math.random();
-            const v = Math.random();
-            const theta = u * 2.0 * Math.PI;
-            const phi = Math.acos(2.0 * v - 1.0);
-            const radius = 40 + Math.random() * 20;
-
-            positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-            positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-            positions[i * 3 + 2] = radius * Math.cos(phi);
-
-            // Subtle color tint
-            const tint = Math.random();
-            colors[i * 3] = 0.85 + tint * 0.15;
-            colors[i * 3 + 1] = 0.9 + tint * 0.1;
-            colors[i * 3 + 2] = 1.0;
+    // World positions for every constellation below were computed from
+    // the camera's actual default basis vectors (forward/right/up, from
+    // theta:0.8, phi:1.1, radius:14, target (0,1.2,0)) as an azimuth +
+    // elevation offset from the camera's forward direction, then placed
+    // along that ray at a fixed distance. This guarantees every entry
+    // lands inside the camera's frustum (unlike eyeballed coordinates,
+    // which can silently end up behind the camera) and inside the
+    // starfield's own 25-85 unit shell (see buildStarfield). All 7 are
+    // fixed world positions — nothing here ever moves or rotates.
+    const CONSTELLATION_DATA = [
+        {
+            name: 'PLEIADES',
+            position: { x: -7.27, y: -2.60, z: -33.14 }, // upper-left of default view
+            scale: 2.6,
+            brightestIndex: 4,
+            stars: [
+                { x: 0.0, y: 0.0, brightness: 0.75 },
+                { x: 0.6, y: 0.3, brightness: 0.55 },
+                { x: 0.3, y: 0.9, brightness: 0.5 },
+                { x: -0.4, y: 0.6, brightness: 0.6 },
+                { x: -0.2, y: -0.5, brightness: 1.0 }, // Alcyone (brightest)
+                { x: 0.8, y: -0.2, brightness: 0.5 },
+                { x: 1.1, y: 0.5, brightness: 0.45 }
+            ],
+            connections: [[0, 1], [1, 2], [0, 3], [0, 4], [4, 5], [5, 6]]
+        },
+        {
+            name: 'ORION',
+            position: { x: -31.60, y: -0.31, z: -13.73 }, // upper-right of default view
+            scale: 3.0,
+            brightestIndex: 6,
+            stars: [
+                { x: 0.9, y: 2.0, brightness: 0.65 },   // Betelgeuse (shoulder)
+                { x: -0.7, y: 2.1, brightness: 0.55 },  // Bellatrix (shoulder)
+                { x: 0.5, y: 0.6, brightness: 0.6 },    // Mintaka (belt)
+                { x: 0.0, y: 0.5, brightness: 0.65 },   // Alnilam (belt)
+                { x: -0.5, y: 0.4, brightness: 0.6 },   // Alnitak (belt)
+                { x: 0.6, y: -1.6, brightness: 0.55 },  // Saiph (foot)
+                { x: -0.8, y: -1.8, brightness: 1.0 }   // Rigel (foot, brightest)
+            ],
+            connections: [[0, 2], [1, 4], [2, 3], [3, 4], [2, 5], [4, 6]]
+        },
+        {
+            name: 'SCORPIUS',
+            position: { x: 0.95, y: -20.10, z: -27.19 }, // lower-left of default view
+            scale: 2.8,
+            brightestIndex: 3,
+            stars: [
+                { x: 0.0, y: 2.0, brightness: 0.5 },
+                { x: 0.4, y: 1.7, brightness: 0.45 },
+                { x: -0.3, y: 1.6, brightness: 0.45 },
+                { x: 0.1, y: 1.0, brightness: 1.0 }, // Antares (brightest)
+                { x: 0.3, y: 0.3, brightness: 0.55 },
+                { x: 0.6, y: -0.4, brightness: 0.5 },
+                { x: 0.9, y: -1.0, brightness: 0.55 },
+                { x: 1.3, y: -1.3, brightness: 0.6 },
+                { x: 1.6, y: -1.0, brightness: 0.5 }
+            ],
+            connections: [[0, 3], [1, 3], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8]]
+        },
+        {
+            name: 'URSA MAJOR',
+            position: { x: -26.55, y: -21.94, z: -0.19 }, // lower-right of default view
+            scale: 2.4,
+            brightestIndex: 1,
+            stars: [
+                { x: 0.0, y: 0.0, brightness: 0.6 },
+                { x: 1.0, y: 0.1, brightness: 0.65 },
+                { x: 1.1, y: 0.9, brightness: 0.55 },
+                { x: 0.1, y: 0.9, brightness: 0.6 },
+                { x: 1.8, y: 1.3, brightness: 0.5 },
+                { x: 2.4, y: 1.9, brightness: 0.55 },
+                { x: 2.9, y: 2.1, brightness: 1.0 } // Alkaid (brightest, handle tip)
+            ],
+            connections: [[0, 1], [1, 2], [2, 3], [3, 0], [2, 4], [4, 5], [5, 6]]
+        },
+        // 3 additional constellations filling out the rest of the visible
+        // sky alongside the 4 above.
+        {
+            name: 'CASSIOPEIA',
+            position: { x: -35.51, y: -8.21, z: -4.55 }, // far right of default view
+            scale: 2.6,
+            brightestIndex: 2,
+            stars: [
+                { x: 0.0, y: 0.0, brightness: 0.55 },   // Caph
+                { x: 0.8, y: 0.8, brightness: 0.5 },    // Schedar
+                { x: 1.6, y: 0.2, brightness: 0.9 },    // Gamma Cas (brightest, center of the W)
+                { x: 2.4, y: 0.9, brightness: 0.55 },   // Ruchbah
+                { x: 3.2, y: 0.1, brightness: 0.5 }     // Segin
+            ],
+            connections: [[0, 1], [1, 2], [2, 3], [3, 4]]
+        },
+        {
+            name: 'CYGNUS',
+            position: { x: -26.53, y: 1.60, z: -24.57 }, // upper-center of default view
+            scale: 2.9,
+            brightestIndex: 0,
+            stars: [
+                { x: 0.0, y: 2.5, brightness: 1.0 },    // Deneb (tail, brightest)
+                { x: 0.0, y: 1.1, brightness: 0.55 },   // Sadr (wing junction)
+                { x: -1.3, y: 0.35, brightness: 0.45 }, // Delta Cygni (wing)
+                { x: 1.3, y: 0.35, brightness: 0.45 },  // Gienah (wing)
+                { x: 0.0, y: -1.7, brightness: 0.6 }    // Albireo (head/beak)
+            ],
+            connections: [[0, 1], [1, 2], [1, 3], [1, 4]]
+        },
+        {
+            name: 'LEO',
+            position: { x: -10.51, y: -25.34, z: -16.91 }, // lower-center of default view
+            scale: 2.5,
+            brightestIndex: 0,
+            stars: [
+                { x: 0.0, y: 0.0, brightness: 1.0 },    // Regulus (brightest, front paw)
+                { x: 0.3, y: 0.9, brightness: 0.5 },    // Algieba
+                { x: 0.1, y: 1.7, brightness: 0.45 },   // Adhafera
+                { x: -0.6, y: 1.9, brightness: 0.4 },   // Rasalas
+                { x: 2.3, y: 0.3, brightness: 0.55 },   // Zosma
+                { x: 3.0, y: -0.1, brightness: 0.6 }    // Denebola (tail)
+            ],
+            connections: [[0, 1], [1, 2], [2, 3], [1, 4], [4, 5]]
         }
+    ];
 
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-        // Procedural Star Texture
+    // Soft radial-gradient sprite texture, reused for both star point
+    // sprites and the brighter-star glow halos.
+    function createGlowTexture(size) {
         const canvas = document.createElement('canvas');
-        canvas.width = 16;
-        canvas.height = 16;
+        canvas.width = size;
+        canvas.height = size;
         const ctx = canvas.getContext('2d');
-        const grad = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
+        const c = size / 2;
+        // Tight, punchy core so points read as crisp shiny dots rather
+        // than soft blurred blobs — most of the falloff happens fast.
+        const grad = ctx.createRadialGradient(c, c, 0, c, c, c);
         grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-        grad.addColorStop(0.3, 'rgba(141, 177, 245, 0.8)');
-        grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        grad.addColorStop(0.12, 'rgba(255, 255, 255, 1)');
+        grad.addColorStop(0.35, 'rgba(200, 220, 255, 0.45)');
+        grad.addColorStop(1, 'rgba(140, 180, 255, 0)');
         ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 16, 16);
-        const starTexture = new THREE.CanvasTexture(canvas);
+        ctx.fillRect(0, 0, size, size);
+        return new THREE.CanvasTexture(canvas);
+    }
 
-        const material = new THREE.PointsMaterial({
-            size: 0.45,
-            vertexColors: true,
-            map: starTexture,
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
+    // Softer, wider falloff used only for the faint ambient halo behind
+    // stars — separate from the crisp point texture above so the halo
+    // reads as a subtle glow, not a duplicate blurry star.
+    function createHaloTexture(size) {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const c = size / 2;
+        const grad = ctx.createRadialGradient(c, c, 0, c, c, c);
+        grad.addColorStop(0, 'rgba(210, 225, 255, 0.9)');
+        grad.addColorStop(0.4, 'rgba(150, 185, 255, 0.25)');
+        grad.addColorStop(1, 'rgba(140, 180, 255, 0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
+        return new THREE.CanvasTexture(canvas);
+    }
+
+    // Builds one constellation as a self-contained Group: a Points object
+    // for the stars (single draw call), LineSegments for the thin
+    // connecting lines, one small additive glow Sprite behind the
+    // brightest star, and a low-opacity text-label Sprite. Kept generic —
+    // any entry in CONSTELLATION_DATA can be passed through this unchanged.
+    function createConstellation(def, starTexture, haloTexture) {
+        const group = new THREE.Group();
+        group.position.set(def.position.x, def.position.y, def.position.z);
+
+        // Stars (Points)
+        const positions = new Float32Array(def.stars.length * 3);
+        const colors = new Float32Array(def.stars.length * 3);
+        def.stars.forEach((s, i) => {
+            positions[i * 3] = s.x * def.scale;
+            positions[i * 3 + 1] = s.y * def.scale;
+            positions[i * 3 + 2] = 0;
+            const b = 0.75 + s.brightness * 0.35; // brighter floor so every star reads as a shiny dot
+            colors[i * 3] = b;
+            colors[i * 3 + 1] = b * 0.98;
+            colors[i * 3 + 2] = 1.0;
         });
-
-        TELE_STATE.starfield = new THREE.Points(geometry, material);
-        TELE_STATE.scene.add(TELE_STATE.starfield);
-
-        // Constellation Lines (subtle low-opacity linking lines)
-        const lineGeo = new THREE.BufferGeometry();
-        const linePos = [];
-        // Connect random pairs of nearby stars to look like constellation lines
-        const posArr = positions;
-        const maxDistSq = 8.0 * 8.0;
-        let connections = 0;
-        for (let i = 0; i < starCount && connections < 25; i++) {
-            const x1 = posArr[i * 3];
-            const y1 = posArr[i * 3 + 1];
-            const z1 = posArr[i * 3 + 2];
-            for (let j = i + 1; j < starCount; j++) {
-                const x2 = posArr[j * 3];
-                const y2 = posArr[j * 3 + 1];
-                const z2 = posArr[j * 3 + 2];
-                const distSq = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1);
-                if (distSq < maxDistSq) {
-                    linePos.push(x1, y1, z1, x2, y2, z2);
-                    connections++;
-                    break;
-                }
-            }
-        }
-        lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePos, 3));
-        const lineMat = new THREE.LineBasicMaterial({
-            color: 0x4f7fd6,
+        const starGeo = new THREE.BufferGeometry();
+        starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        const starMat = new THREE.PointsMaterial({
+            size: 0.8,
+            map: starTexture,
+            vertexColors: true,
             transparent: true,
-            opacity: 0.08,
+            opacity: 1.0,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            sizeAttenuation: true
+        });
+        group.add(new THREE.Points(starGeo, starMat));
+
+        // Connecting lines — thin, low-opacity, stable (never animated)
+        const linePositions = [];
+        def.connections.forEach(([a, b]) => {
+            const sa = def.stars[a], sb = def.stars[b];
+            linePositions.push(sa.x * def.scale, sa.y * def.scale, 0, sb.x * def.scale, sb.y * def.scale, 0);
+        });
+        const lineGeo = new THREE.BufferGeometry();
+        lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+        const lineMat = new THREE.LineBasicMaterial({
+            color: 0x8fb4ff,
+            transparent: true,
+            opacity: 0.55,
             blending: THREE.AdditiveBlending
         });
-        TELE_STATE.constellations = new THREE.LineSegments(lineGeo, lineMat);
-        TELE_STATE.scene.add(TELE_STATE.constellations);
+        group.add(new THREE.LineSegments(lineGeo, lineMat));
+
+        // Glow halo behind every star, sized and lit by that star's own
+        // brightness value. Brighter stars get a bigger, more opaque glow
+        // (reads as "closer"); dimmer stars get a small, faint glow
+        // (reads as "farther away") — giving the cluster a sense of depth
+        // instead of every dot looking like it sits on the same plane.
+        // The brightest star in each constellation still stands out the
+        // most since brightness feeds directly into both scale & opacity.
+        const glowSprites = [];
+        def.stars.forEach((s, i) => {
+            const isBrightest = i === def.brightestIndex;
+            const glowMat = new THREE.SpriteMaterial({
+                map: haloTexture,
+                color: 0xd6e6ff,
+                transparent: true,
+                opacity: 0.3 + s.brightness * 0.4,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            const glowSprite = new THREE.Sprite(glowMat);
+            // Small, tight halo — just enough to add a shine/rim of light
+            // around each point star. Brightness still sets how big it
+            // gets (nearer-reading stars), but kept far smaller than the
+            // constellation's own scale so it never smears into a blob.
+            const glowBaseScale = def.scale * (0.14 + s.brightness * 0.16) * (isBrightest ? 1.25 : 1.0);
+            glowSprite.scale.set(glowBaseScale, glowBaseScale, 1);
+            glowSprite.position.set(s.x * def.scale, s.y * def.scale, -0.05);
+            group.add(glowSprite);
+            glowSprites.push({
+                sprite: glowSprite,
+                mat: glowMat,
+                baseOpacity: 0.3 + s.brightness * 0.4,
+                baseScale: glowBaseScale,
+                phase: Math.random() * Math.PI * 2,
+                speed: 0.4 + Math.random() * 0.4
+            });
+        });
+
+        // Small, unobtrusive name label
+        const labelCanvas = document.createElement('canvas');
+        labelCanvas.width = 360;
+        labelCanvas.height = 64;
+        const lctx = labelCanvas.getContext('2d');
+        lctx.font = '800 28px "Space Grotesk", sans-serif';
+        lctx.textAlign = 'center';
+        lctx.textBaseline = 'middle';
+        // Dark outline first so the name stays legible over bright stars
+        // or a busy background, then a crisp white fill on top.
+        lctx.lineWidth = 7;
+        lctx.lineJoin = 'round';
+        lctx.strokeStyle = 'rgba(2, 6, 16, 0.9)';
+        lctx.strokeText(def.name, 180, 34);
+        lctx.fillStyle = '#ffffff';
+        lctx.fillText(def.name, 180, 34);
+        const labelTex = new THREE.CanvasTexture(labelCanvas);
+        const labelMat = new THREE.SpriteMaterial({
+            map: labelTex,
+            transparent: true,
+            opacity: 1.0,
+            depthWrite: false
+        });
+        const label = new THREE.Sprite(labelMat);
+        label.scale.set(def.scale * 3.1, def.scale * 0.55, 1);
+        // Positioned just outside the star cluster's own bounding area
+        const ys = def.stars.map(s => s.y);
+        const labelY = (Math.min(...ys) - 0.8) * def.scale;
+        label.position.set(0, labelY, 0.05);
+        group.add(label);
+
+        return { group, glowSprites };
+    }
+
+    function buildStarfield() {
+        const isMobile = window.innerWidth < 768;
+
+        // Procedural star point texture, shared across every layer and
+        // every constellation (one texture, many draw calls reuse it).
+        const starTexture = createGlowTexture(16);
+        // Softer halo texture, reused across every constellation's
+        // per-star shine sprites.
+        const haloTexture = createHaloTexture(32);
+
+        // Everything starfield-related lives under one Group so the
+        // existing single `starfield.rotation.y -= 0.0003` in
+        // animateTelescopeScene() keeps working unchanged for all layers
+        // at once.
+        TELE_STATE.starfield = new THREE.Group();
+        TELE_STATE.starLayers = [];
+
+        // Three depth layers — dim/far, mid, and a few bright/near stars.
+        // This is what gives "different sizes and brightness levels" and
+        // the added sense of depth (brighter = nearer, by real-world
+        // convention), rather than one uniform Points cloud.
+        const layerDefs = [
+            { count: isMobile ? 220 : 380, radiusMin: 55, radiusMax: 90, size: 0.32, opacity: 0.6, twinkleAmp: 0.08, twinkleSpeed: 0.15 },
+            { count: isMobile ? 90 : 160, radiusMin: 38, radiusMax: 58, size: 0.55, opacity: 0.85, twinkleAmp: 0.1, twinkleSpeed: 0.22 },
+            { count: isMobile ? 24 : 45, radiusMin: 26, radiusMax: 42, size: 0.95, opacity: 1.0, twinkleAmp: 0.14, twinkleSpeed: 0.3 },
+            // Extra "near" layer — a handful of bigger, brighter shiny
+            // dots scattered close in, reinforcing the sense that some
+            // stars sit much nearer the camera than others.
+            { count: isMobile ? 6 : 14, radiusMin: 18, radiusMax: 28, size: 1.3, opacity: 1.0, twinkleAmp: 0.16, twinkleSpeed: 0.35 }
+        ];
+
+        layerDefs.forEach((def) => {
+            const positions = new Float32Array(def.count * 3);
+            const colors = new Float32Array(def.count * 3);
+
+            for (let i = 0; i < def.count; i++) {
+                const u = Math.random();
+                const v = Math.random();
+                const t = u * 2.0 * Math.PI;
+                const phi = Math.acos(2.0 * v - 1.0);
+                const radius = def.radiusMin + Math.random() * (def.radiusMax - def.radiusMin);
+
+                positions[i * 3] = radius * Math.sin(phi) * Math.cos(t);
+                positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(t);
+                positions[i * 3 + 2] = radius * Math.cos(phi);
+
+                const tint = Math.random();
+                colors[i * 3] = 0.85 + tint * 0.15;
+                colors[i * 3 + 1] = 0.9 + tint * 0.1;
+                colors[i * 3 + 2] = 1.0;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: def.size,
+                vertexColors: true,
+                map: starTexture,
+                transparent: true,
+                opacity: def.opacity,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            const points = new THREE.Points(geometry, material);
+            TELE_STATE.starfield.add(points);
+            TELE_STATE.starLayers.push({
+                material,
+                baseOpacity: def.opacity,
+                amp: def.twinkleAmp,
+                speed: def.twinkleSpeed,
+                phase: Math.random() * Math.PI * 2
+            });
+        });
+
+        TELE_STATE.scene.add(TELE_STATE.starfield);
+
+        // The 4 named constellations — fixed world positions, added
+        // directly to the scene (NOT nested under the rotating starfield
+        // Group above), so they never move or rotate, per spec.
+        TELE_STATE.constellationGroups = CONSTELLATION_DATA.map((def) => {
+            const built = createConstellation(def, starTexture, haloTexture);
+            TELE_STATE.scene.add(built.group);
+            return built;
+        });
     }
 
     function buildOrbitPath() {
@@ -586,13 +879,31 @@
             TELE_STATE.beam.scale.y = beamLength;
         }
 
-        // Rotate starfield slowly
+        // Rotate starfield slowly (unchanged existing behavior — now
+        // rotates all 3 depth layers together since they're grouped)
         if (TELE_STATE.starfield) {
             TELE_STATE.starfield.rotation.y -= 0.0003;
         }
-        if (TELE_STATE.constellations) {
-            TELE_STATE.constellations.rotation.y -= 0.0003;
-        }
+
+        // Slow, almost imperceptible starfield twinkle — each depth layer
+        // breathes its opacity around its base value at its own slow,
+        // independent frequency (not moving/scaling anything, just a very
+        // small opacity wobble), so the whole sky doesn't pulse in unison.
+        const nowSec = performance.now() / 1000;
+        TELE_STATE.starLayers.forEach((layer) => {
+            layer.material.opacity = layer.baseOpacity + Math.sin(nowSec * layer.speed + layer.phase) * layer.amp;
+        });
+
+        // Constellations stay completely fixed (no position/rotation
+        // changes, per spec) — only the single glow halo behind each
+        // constellation's brightest star gently pulses in place.
+        TELE_STATE.constellationGroups.forEach(({ glowSprites }) => {
+            glowSprites.forEach((g) => {
+                const pulse = 1 + Math.sin(nowSec * g.speed + g.phase) * 0.18;
+                g.mat.opacity = g.baseOpacity * pulse;
+                g.sprite.scale.set(g.baseScale * pulse, g.baseScale * pulse, 1);
+            });
+        });
 
         // Render Scene
         if (TELE_STATE.renderer && TELE_STATE.scene && TELE_STATE.camera) {

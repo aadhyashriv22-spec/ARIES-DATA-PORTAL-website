@@ -1036,7 +1036,9 @@
 
         const SAMPLE_COUNT = 72; // 5-degree steps around the ring
         const size = STATE.renderer.getSize(new THREE.Vector2());
-        const EDGE_MARGIN = 0.90;
+        // (pixel-space clamping in toPixelBox() below now keeps each
+        // label's full bounding box on-screen, so no separate NDC edge
+        // margin constant is needed here any more)
         const worldPos = new THREE.Vector3();
 
         // Earth's approximate on-screen center + angular radius (in NDC
@@ -1100,18 +1102,37 @@
 
         const placedBoxes = []; // {left, top, right, bottom} in pixel space, already-placed labels this frame
 
+        // Converts a candidate NDC point to a pixel-space label box.
+        // Previously this clamped the NDC point itself to +/-EDGE_MARGIN
+        // and only afterward centered the label on it — which kept the
+        // ANCHOR on-screen but not the label's own footprint, so a wide
+        // box anchored near the edge (e.g. "GEO") still had its far half
+        // pushed past the container boundary and clipped by the overlay's
+        // overflow:hidden (only "EO" visible). Instead, clamp the box's
+        // CENTER in pixel space by its own half-width/half-height plus a
+        // small inner padding, so the full box — text and all — always
+        // stays inside the canvas.
+        const EDGE_PADDING_PX = 8;
         function toPixelBox(ndc, lbl) {
-            const clampedX = Math.max(-EDGE_MARGIN, Math.min(EDGE_MARGIN, ndc.x));
-            const clampedY = Math.max(-EDGE_MARGIN, Math.min(EDGE_MARGIN, ndc.y));
-            const px = (clampedX * 0.5 + 0.5) * size.x;
-            const py = (-clampedY * 0.5 + 0.5) * size.y;
+            const rawPx = (ndc.x * 0.5 + 0.5) * size.x;
+            const rawPy = (-ndc.y * 0.5 + 0.5) * size.y;
+            const halfW = lbl.approxWidthPx / 2;
+            const halfH = lbl.approxHeightPx / 2;
+            const minX = halfW + EDGE_PADDING_PX;
+            const maxX = size.x - halfW - EDGE_PADDING_PX;
+            const minY = halfH + EDGE_PADDING_PX;
+            const maxY = size.y - halfH - EDGE_PADDING_PX;
+            // Guard against containers narrower/shorter than the label
+            // itself (min > max) so clamp() doesn't invert and misplace it.
+            const px = minX <= maxX ? Math.max(minX, Math.min(maxX, rawPx)) : size.x / 2;
+            const py = minY <= maxY ? Math.max(minY, Math.min(maxY, rawPy)) : size.y / 2;
             return {
                 px, py,
-                left: px - lbl.approxWidthPx / 2,
-                right: px + lbl.approxWidthPx / 2,
-                top: py - lbl.approxHeightPx / 2,
-                bottom: py + lbl.approxHeightPx / 2,
-                wasClamped: clampedX !== ndc.x || clampedY !== ndc.y
+                left: px - halfW,
+                right: px + halfW,
+                top: py - halfH,
+                bottom: py + halfH,
+                wasClamped: px !== rawPx || py !== rawPy
             };
         }
 

@@ -23,10 +23,10 @@ body {
 /* ---- Project Lead spotlight ---- */
 /* Deliberately broader/richer than a .team-card or even the regular
    .member-profile-panel — it's a CV-style spotlight for whoever leads
-   the project (PROJECT_LEAD in team-data.js), shown once at the top of
-   the page, above Current Projects. */
+   the project (PROJECT_LEAD in team-data.js), shown directly below the
+   intro + Current Projects row, above the team roster. */
 .leader-section-wrap {
-    margin-bottom: 44px;
+    margin-bottom: 32px;
 }
 
 .leader-eyebrow {
@@ -118,28 +118,102 @@ body {
 
 .leader-body {
     padding: 32px;
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 40px;
 }
 
-.leader-section {
-    margin-bottom: 28px;
-}
-
-.leader-section:last-child {
-    margin-bottom: 0;
-}
-
-.leader-section h3 {
-    font-family: var(--font-heading);
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--color-text-muted);
-    margin-bottom: 14px;
-    padding-bottom: 8px;
+/* ---- Tab bar ---- */
+.leader-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 16px 32px 0;
     border-bottom: 1px solid var(--color-border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.leader-tab {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--color-text-muted);
+    font-family: var(--font-heading);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 10px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.leader-tab:hover {
+    color: var(--color-text);
+}
+
+.leader-tab.active {
+    color: var(--color-accent-hover);
+    border-bottom-color: var(--color-accent);
+}
+
+/* ---- Tab panels ---- */
+.leader-tab-panels {
+    padding: 24px 32px 32px;
+}
+
+.leader-tab-panel {
+    display: none;
+    /* Caps how tall any single section can push the card — content
+       scrolls internally past this height instead of growing the whole
+       leadership panel taller (this replaces the old .leader-scroll-box,
+       which only applied to the Research Interests list; every tab gets
+       this consistently now). */
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-glow) transparent;
+}
+
+.leader-tab-panel.active {
+    display: block;
+}
+
+.leader-tab-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.leader-tab-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.leader-tab-panel::-webkit-scrollbar-thumb {
+    background: var(--color-border-glow);
+    border-radius: 999px;
+}
+
+.leader-tab-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+}
+
+/* Special highlighted-box treatment, preserved from the old
+   .leader-open-to / .leader-office-contact sections — applied to the
+   panel itself now that the outer wrapper div is gone. */
+.leader-tab-panel[data-tab-panel="interns"],
+.leader-tab-panel[data-tab-panel="contact"] {
+    background: rgba(79, 127, 214, 0.06);
+    border: 1px solid var(--color-border-glow);
+    border-radius: var(--border-radius-md);
+    padding: 18px;
+    max-height: none;
+}
+
+.leader-tab-panel[data-tab-panel="interns"] p,
+.leader-tab-panel[data-tab-panel="contact"] p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--color-text);
+    margin-bottom: 12px;
 }
 
 .leader-education {
@@ -251,65 +325,6 @@ body {
     background: var(--color-accent);
 }
 
-/* Caps the height of long lists (currently used for Research and
-   Engineering Interests) so the leader spotlight doesn't push the rest
-   of the page too far down — the list scrolls internally instead. */
-.leader-scroll-box {
-    max-height: 230px;
-    overflow-y: auto;
-    padding-right: 12px;
-}
-
-.leader-scroll-box::-webkit-scrollbar {
-    width: 6px;
-}
-
-.leader-scroll-box::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.leader-scroll-box::-webkit-scrollbar-thumb {
-    background: var(--color-border-glow);
-    border-radius: 999px;
-}
-
-.leader-scroll-box::-webkit-scrollbar-thumb:hover {
-    background: var(--color-accent);
-}
-
-.leader-scroll-box {
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-border-glow) transparent;
-}
-
-.leader-open-to {
-    background: rgba(79, 127, 214, 0.06);
-    border: 1px solid var(--color-border-glow);
-    border-radius: var(--border-radius-md);
-    padding: 18px;
-}
-
-.leader-open-to p {
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--color-text);
-    margin-bottom: 12px;
-}
-
-.leader-office-contact {
-    background: rgba(79, 127, 214, 0.06);
-    border: 1px solid var(--color-border-glow);
-    border-radius: var(--border-radius-md);
-    padding: 18px;
-}
-
-.leader-office-contact p {
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--color-text);
-    margin-bottom: 12px;
-}
-
 .office-ext-list {
     display: flex;
     gap: 10px;
@@ -326,9 +341,34 @@ body {
     padding: 6px 14px;
 }
 
+/* ---- Page-level two-column layout ---- */
+/* Left column carries the narrative + leadership + full team roster, all
+   stacked together and as tall as that content naturally is. Right
+   column is a persistent, independent-height sidebar holding only
+   Current Projects — align-items:start (grid's own default, stated
+   explicitly for clarity) means the right column does NOT stretch to
+   match the left column's height, so it just ends after its own content
+   rather than being pushed/stretched by the leadership or team sections
+   below it in the left column. */
+.team-two-col-layout {
+    display: grid;
+    /* Widened from 1.9fr toward the main column — Current Projects gives
+       up some of its width (still fully readable at ~294px) so the team
+       roster cards below can be wider instead of tall/narrow. */
+    grid-template-columns: 2.6fr 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+.team-main-col .portal-intro {
+    margin-bottom: 32px;
+}
+
 /* ---- Current Projects section ---- */
-.team-projects-section {
-    margin-bottom: 44px;
+.team-projects-col {
+    /* No margin-bottom needed — this column's height is independent of
+       the left column, so it doesn't need to "clear" anything below it
+       the way a full-width stacked block would. */
 }
 
 .team-projects-header {
@@ -351,8 +391,12 @@ body {
 
 .team-projects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 18px;
+    /* Single column — this grid lives in the narrower right-hand
+       sidebar, not the full page width, so the original
+       auto-fill(minmax(260px,1fr)) would have squeezed 2 cards per row
+       awkwardly instead of the clean stacked cards in the reference. */
+    grid-template-columns: 1fr;
+    gap: 14px;
 }
 
 .project-card {
@@ -433,11 +477,15 @@ body {
     padding: 3px 9px;
 }
 
-/* ---- Sidebar filter + member grid layout ---- */
+/* ---- Filter sidebar + member grid layout ---- */
+/* Vertical LEFT sidebar (unchanged format), 150px — the main column now
+   has real extra width from .team-two-col-layout's widened ratio above,
+   so team cards can be noticeably wider (~187px vs the previous 155px)
+   while still fitting 3 per row. */
 .team-layout {
     display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 24px;
+    grid-template-columns: 150px 1fr;
+    gap: 20px;
     align-items: start;
 }
 
@@ -447,7 +495,7 @@ body {
     background: rgba(13, 20, 36, 0.55);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-md);
-    padding: 18px;
+    padding: 16px 14px;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
@@ -459,7 +507,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--color-text-muted);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     padding: 0 4px;
 }
 
@@ -473,15 +521,15 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
     text-align: left;
     background: transparent;
     border: 1px solid transparent;
     border-radius: var(--border-radius-sm);
-    padding: 10px 12px;
+    padding: 9px 10px;
     font-family: var(--font-body);
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 500;
     color: var(--color-text-muted);
     cursor: pointer;
@@ -521,8 +569,14 @@ body {
 /* ---- Team grid ---- */
 .team-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 20px;
+    /* 187px: main column widened via .team-two-col-layout's ratio change
+       (Current Projects gave up width to make room here) — cards read as
+       properly horizontal now (photo + name/role side by side without
+       heavy wrapping) instead of the cramped, tall 155px cards this had
+       right after the sidebar was restored. Still comfortably fits 3
+       per row. */
+    grid-template-columns: repeat(auto-fill, minmax(187px, 1fr));
+    gap: 18px;
 }
 
 .team-card {
@@ -530,7 +584,10 @@ body {
     background: rgba(13, 20, 36, 0.55);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-md);
-    padding: 24px 22px;
+    /* Tightened from 24px 22px — frees a bit more content width for the
+       name/role text at the card's new (narrower than the pre-restructure
+       original) width. */
+    padding: 20px 16px;
     text-decoration: none;
     color: inherit;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -556,8 +613,17 @@ body {
 .team-card-top {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     margin-bottom: 12px;
+}
+
+/* Matches the 44px photo size set inline in team.js's cardHtml() — this
+   is the initials-fallback version for members without a photo, sized
+   to match rather than the base .avatar rule's 56px. */
+.team-card-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 15px;
 }
 
 /* ---- Expand-in-place card details ---- */
@@ -1156,6 +1222,11 @@ body {
 
 /* ---- Responsive ---- */
 @media (max-width: 900px) {
+    .team-two-col-layout {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
     .team-layout {
         grid-template-columns: 1fr;
     }
@@ -1180,10 +1251,6 @@ body {
 
 @media (max-width: 800px) {
     .member-body {
-        grid-template-columns: 1fr;
-    }
-
-    .leader-body {
         grid-template-columns: 1fr;
     }
 }
@@ -1223,6 +1290,14 @@ body {
 
     .leader-body {
         padding: 24px;
+    }
+
+    .leader-tabs {
+        padding: 12px 24px 0;
+    }
+
+    .leader-tab-panels {
+        padding: 20px 24px 24px;
     }
 
     .leader-timeline-head {

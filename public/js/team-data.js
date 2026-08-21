@@ -227,7 +227,7 @@ const TEAM_MEMBERS = [
     { id: "pg-02", name: "Mahendra Shah", designation: "Postgraduate Engineer", category: "postgraduate_engineer", organization: "ARIES", field: "Astronomical Instrumentation", workingOn: "Charaterization of Detectors (EMCCD & sCMOS)", researchArea: "Adaptive Optics", photo: null, email: "mahendershah2@gmail.com", bio: ["In-house design and development of AO"], publications: [], links: { website: null, scholar: null, github: null, linkedin: "http://www.linkedin.com/in/mahender-shah-99a1b0180" }, published: true },
 
     // ---- Aerospace Engineer — its own column ----
-    { id: "aero-01", name: "Divanshu Chaubey", designation: "Aerospace Engineer", organization: "ISTRAC-ISRO", category: "aerospace_engineer", field: "Mechanical designing", workingOn: "Design, development, fabrication, and assembly of precision components for telescope systems, scientific sensors, observatory domes, telescope mounts, and mechatronic subsystems, including development and characterisation of flexure and thermal models.", researchArea: "Development of astronomical instrumentation and telescope mechanisms, precision mechanical design, experimental aerodynamics, gas dynamics, shock-wave interactions, shock-tube studies, numerical simulations, and wind-tunnel experiments.", photo: "/assets/team/aero-01.jpg", email: "divyanshu.aries@gmail.com", bio: ["An Aerospace Engineer working in telescope systems and precision mechanical design, with experience spanning aerospace research, propulsion, experimental testing, and product development."], interests: ["Development of astronomical instrumentation and telescope mechanisms, precision mechanical design, experimental aerodynamics, gas dynamics, shock-wave interactions, shock-tube studies, numerical simulations, and wind-tunnel experiments."], researchExperience: ["Research experience in telescope systems, experimental aerodynamics, gas dynamics, and shock-wave interactions. His work spans wind-tunnel experiments, shock-tube studies, numerical simulations, precision mechanical design, and the development of astronomical instrumentation and telescope mechanisms."], publications: [ {
+    { id: "aero-01", name: "Divanshu Chaubey", designation: "Aerospace Engineer", organization: "BEL", category: "aerospace_engineer", field: "Mechanical designing", workingOn: "Design, development, fabrication, and assembly of precision components for telescope systems, scientific sensors, observatory domes, telescope mounts, and mechatronic subsystems, including development and characterisation of flexure and thermal models.", researchArea: "Development of astronomical instrumentation and telescope mechanisms, precision mechanical design, experimental aerodynamics, gas dynamics, shock-wave interactions, shock-tube studies, numerical simulations, and wind-tunnel experiments.", photo: "/assets/team/aero-01.jpg", email: "divyanshu.aries@gmail.com", bio: ["An Aerospace Engineer working in telescope systems and precision mechanical design, with experience spanning aerospace research, propulsion, experimental testing, and product development."], interests: ["Development of astronomical instrumentation and telescope mechanisms, precision mechanical design, experimental aerodynamics, gas dynamics, shock-wave interactions, shock-tube studies, numerical simulations, and wind-tunnel experiments."], researchExperience: ["Research experience in telescope systems, experimental aerodynamics, gas dynamics, and shock-wave interactions. His work spans wind-tunnel experiments, shock-tube studies, numerical simulations, precision mechanical design, and the development of astronomical instrumentation and telescope mechanisms."], publications: [ {
     citation: "Integrated Thermodynamic and Vibration Analysis of Micro Turbines for Aerospace Applications Using MATLAB — VETOMAC, IIT Guwahati (In Process)",
     url: null
   },
@@ -278,28 +278,32 @@ const COLUMN_GROUPS = [
 // ------------------------------------------------------------------
 // CURRENT PROJECTS
 // Powers the "Current Projects" section on the team page.
-// PLACEHOLDER titles/descriptions — replace with your real MoU project
-// names and descriptions for ISRO / DRDO / BEL.
+// Based on ARIES's real, publicly-announced MoUs: ISRO (signed 4 June
+// 2020), DRDO/IRDE Dehradun (signed 13 May 2025), and BEL (signed
+// September 2024, at BEL's Ghaziabad unit). Sources: Press Information
+// Bureau / DST press release, Tribune India, PSU Watch, IBC World News.
+// Descriptions below are paraphrased summaries of the publicly reported
+// scope of each MoU, not verbatim text from any source.
 // ------------------------------------------------------------------
 const PROJECTS = [
     {
         id: "proj-01",
-        title: "Project Name (ISRO)",
-        description: "Short placeholder description of the ongoing work under the ISRO collaboration. Replace with real details.",
+        title: "ISRO–ARIES SSA & Astrophysics Collaboration",
+        description: "Signed June 2020, establishing ground-based optical telescope facilities for space object tracking, alongside joint studies on space weather, astrophysics, and near-Earth objects — supporting protection of Indian space assets from debris conjunction risks.",
         orgs: ["ISRO"],
         status: "Ongoing"
     },
     {
         id: "proj-02",
-        title: "Project Name (DRDO)",
-        description: "Short placeholder description of the ongoing work under the DRDO collaboration. Replace with real details.",
+        title: "DRDO–IRDE Ground-Based SSA Partnership",
+        description: "MoU with DRDO's Instruments Research & Development Establishment (Dehradun), signed May 2025, focused on monitoring space objects, developing electro-optical systems for astronomy and SSA, and AI/ML-based image processing — using ARIES's 3.6-m Devasthal Optical Telescope and ST Radar.",
         orgs: ["DRDO"],
         status: "Ongoing"
     },
     {
         id: "proj-03",
-        title: "Project Name (BEL)",
-        description: "Short placeholder description of the ongoing work under the BEL collaboration. Replace with real details.",
+        title: "BEL SSA Technology Development",
+        description: "MoU with Bharat Electronics Limited, signed September 2024, developing technologies for tracking near-Earth objects and artificial satellites in support of India's Space Situational Awareness efforts — utilizing ARIES's 4-m International Liquid Mirror Telescope.",
         orgs: ["BEL"],
         status: "Ongoing"
     }

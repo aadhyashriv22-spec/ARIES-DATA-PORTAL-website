@@ -171,44 +171,55 @@
     <!-- Team Page Content -->
     <main id="main-content" class="portal-container team-page-container">
 
-        <div class="portal-intro">
-            <h1>Project Team</h1>
-            <p>Our SSA team spans multiple engineering and physics disciplines — software, networking, and
-                electronic engineers, optical physicists and astrophysicists, aerospace engineers, and junior and
-                postgraduate engineers — working together across the ARIES SSA programme. Select a member to view
-                their full profile.</p>
-        </div>
-
-        <!-- Current Projects overview, injected by team.js from PROJECTS in team-data.js -->
-        <section class="team-projects-section" aria-labelledby="team-projects-heading">
-            <div class="team-projects-header">
-                <h2 id="team-projects-heading">Current Projects</h2>
-                <p>An overview of the ongoing work the team is contributing to across ISRO, DRDO, and BEL under the
-                    ARIES SSA programme.</p>
-            </div>
-            <div class="team-projects-grid" id="team-projects-grid">
-                <div class="loading">Loading current projects&hellip;</div>
-            </div>
-        </section>
-
-        <!-- Project Lead spotlight, injected by team.js from PROJECT_LEAD in team-data.js -->
-        <div id="team-leader-root">
-            <div class="loading">Loading project leadership&hellip;</div>
-        </div>
-
-        <!-- Sidebar category filter + member grid, injected by team.js -->
-        <div class="team-layout">
-            <aside class="team-sidebar" aria-label="Filter team by category">
-                <div class="team-sidebar-title">Filter by Category</div>
-                <div class="team-sidebar-list" id="team-sidebar-list">
-                    <div class="loading">Loading filters&hellip;</div>
+        <div class="team-two-col-layout">
+            <div class="team-main-col">
+                <div class="portal-intro">
+                    <h1>Behind the Mission</h1>
+                    <p>Our SSA project brings together researchers, engineers, and students from across different
+                        organizations and institutions associated with ARIES. With diverse expertise spanning space
+                        science, astronomy, aerospace, electronics, software, and related fields, our team works
+                        collaboratively towards the development and advancement of Space Situational Awareness
+                        capabilities. Select a member to explore their profile and learn more about their role and
+                        contributions to the project.</p>
                 </div>
+
+                <!-- Project Lead spotlight, injected by team.js from PROJECT_LEAD in team-data.js -->
+                <div id="team-leader-root">
+                    <div class="loading">Loading project leadership&hellip;</div>
+                </div>
+
+                <!-- Sidebar category filter + member grid, injected by team.js -->
+                <div class="team-layout">
+                    <aside class="team-sidebar" aria-label="Filter team by category">
+                        <div class="team-sidebar-title">Filter by Category</div>
+                        <div class="team-sidebar-list" id="team-sidebar-list">
+                            <div class="loading">Loading filters&hellip;</div>
+                        </div>
+                    </aside>
+                    <div class="team-main">
+                        <div class="team-grid" id="team-grid">
+                            <div class="loading">Loading team roster&hellip;</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Projects overview, injected by team.js from PROJECTS in
+                 team-data.js — a persistent right-hand sidebar starting level
+                 with "Behind the Mission", independent of how tall the left
+                 column's content (leadership + team roster) grows to. -->
+            <aside class="team-projects-col">
+                <section class="team-projects-section" aria-labelledby="team-projects-heading">
+                    <div class="team-projects-header">
+                        <h2 id="team-projects-heading">Current Projects</h2>
+                        <p>An overview of the ongoing work the team is contributing to across ISRO, DRDO, and BEL
+                            under the ARIES SSA programme.</p>
+                    </div>
+                    <div class="team-projects-grid" id="team-projects-grid">
+                        <div class="loading">Loading current projects&hellip;</div>
+                    </div>
+                </section>
             </aside>
-            <div class="team-main">
-                <div class="team-grid" id="team-grid">
-                    <div class="loading">Loading team roster&hellip;</div>
-                </div>
-            </div>
         </div>
 
     </main>

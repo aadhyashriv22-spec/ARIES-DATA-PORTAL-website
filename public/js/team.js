@@ -60,85 +60,92 @@
             lead.phone ? `<span>Ext. ${escapeHtml(lead.phone)}</span>` : ''
         ].filter(Boolean).join('');
 
-        const educationHtml = lead.education
-            ? `<div class="leader-section">
-                <h3>Area of Expertise</h3>
-                <p class="leader-education"><strong>Education:</strong> ${escapeHtml(lead.education)}</p>
+        // ------------------------------------------------------------
+        // Everything below the header ("main highlights" — avatar, name,
+        // role badge, designation, contact, research-area tags, all
+        // rendered further down and unchanged) is now organized as tabs
+        // instead of one long stacked column. Each section's content is
+        // built WITHOUT its own <h3> here, since the tab button itself
+        // now serves as that heading — repeating it inside the panel
+        // would be redundant.
+        // ------------------------------------------------------------
+        const educationContent = lead.education
+            ? `<p class="leader-education"><strong>Education:</strong> ${escapeHtml(lead.education)}</p>`
+            : '';
+
+        const experienceContent = (lead.experience || []).length
+            ? `<div class="leader-timeline">
+                ${lead.experience.map((entry) => `
+                    <div class="leader-timeline-item">
+                        <div class="leader-timeline-head">
+                            <span class="leader-timeline-role">${escapeHtml(entry.role)}${entry.org ? `, ${escapeHtml(entry.org)}` : ''}</span>
+                            <span class="leader-timeline-period">${escapeHtml(entry.period || '')}</span>
+                        </div>
+                        ${(entry.points || []).length
+                            ? `<ul class="leader-timeline-points">${entry.points.map((pt) => `<li>${escapeHtml(pt)}</li>`).join('')}</ul>`
+                            : ''}
+                    </div>`).join('')}
             </div>`
             : '';
 
-        const experienceHtml = (lead.experience || []).length
-            ? `<div class="leader-section">
-                <h3>Professional Experience</h3>
-                <div class="leader-timeline">
-                    ${lead.experience.map((entry) => `
-                        <div class="leader-timeline-item">
-                            <div class="leader-timeline-head">
-                                <span class="leader-timeline-role">${escapeHtml(entry.role)}${entry.org ? `, ${escapeHtml(entry.org)}` : ''}</span>
-                                <span class="leader-timeline-period">${escapeHtml(entry.period || '')}</span>
-                            </div>
-                            ${(entry.points || []).length
-                                ? `<ul class="leader-timeline-points">${entry.points.map((pt) => `<li>${escapeHtml(pt)}</li>`).join('')}</ul>`
-                                : ''}
-                        </div>`).join('')}
-                </div>
-            </div>`
+        const interestsContent = (lead.interests || []).length
+            ? `<ul class="leader-bullet-list">${lead.interests.map((i) => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`
             : '';
 
-        const interestsHtml = (lead.interests || []).length
-            ? `<div class="leader-section">
-                <h3>Research and Engineering Interests</h3>
-                <div class="leader-scroll-box">
-                    <ul class="leader-bullet-list">${lead.interests.map((i) => `<li>${escapeHtml(i)}</li>`).join('')}</ul>
-                </div>
-            </div>`
-            : '';
+        // "Externally Funded Projects" — data still lives in
+        // PROJECT_LEAD.projects in team-data.js; add a tab for it below
+        // (push into the `tabs` array) if you want it visible again.
 
-        // "Externally Funded Projects" is intentionally not rendered in the
-        // side column below (removed to shorten the panel and give the
-        // "Open to Interns & Researchers" block that space instead). The
-        // data still lives in PROJECT_LEAD.projects in team-data.js — add
-        // ${projectsHtml} back into leader-body-side further down if you
-        // want it visible again.
-        const projectsHtml = (lead.projects || []).length
-            ? `<div class="leader-section">
-                <h3>Externally Funded Projects</h3>
-                <ul class="leader-bullet-list">${lead.projects.map((p) => `<li>${escapeHtml(p)}</li>`).join('')}</ul>
-            </div>`
-            : '';
-
-        const openToHtml = (lead.openTo && (lead.openTo.note || (lead.openTo.points || []).length))
-            ? `<div class="leader-section leader-open-to">
-                <h3>Open to Interns &amp; Researchers</h3>
-                ${lead.openTo.note ? `<p>${escapeHtml(lead.openTo.note)}</p>` : ''}
-                ${(lead.openTo.points || []).length
+        const openToContent = (lead.openTo && (lead.openTo.note || (lead.openTo.points || []).length))
+            ? `${lead.openTo.note ? `<p>${escapeHtml(lead.openTo.note)}</p>` : ''}
+               ${(lead.openTo.points || []).length
                     ? `<ul class="leader-bullet-list">${lead.openTo.points.map((p) => `<li>${escapeHtml(p)}</li>`).join('')}</ul>`
-                    : ''}
-            </div>`
+                    : ''}`
             : '';
 
         // General office contact — used instead of listing personal numbers
         // for every team member. Edit the extensions below if they change.
-        const officeContactHtml = `
-            <div class="leader-section leader-office-contact">
-                <h3>General Office Contact</h3>
-                <p>For general enquiries, please reach the ARIES SSA office:</p>
-                <div class="office-ext-list">
-                    <span class="office-ext-pill">Ext. 792</span>
-                    <span class="office-ext-pill">Ext. 791</span>
-                </div>
+        const officeContactContent = `
+            <p>For general enquiries, please reach the ARIES SSA office:</p>
+            <div class="office-ext-list">
+                <span class="office-ext-pill">Ext. 792</span>
+                <span class="office-ext-pill">Ext. 791</span>
             </div>`;
 
         const links = lead.links || {};
         const linkEntries = Object.keys(LEADER_LINK_LABELS).filter((key) => links[key]);
-        const linksHtml = linkEntries.length
-            ? `<div class="leader-section">
-                <h3>Links</h3>
-                <div class="link-list">${linkEntries.map((key) => `
-                    <a href="${escapeHtml(links[key])}" target="_blank" rel="noopener noreferrer">
-                        ${LEADER_LINK_LABELS[key]}
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    </a>`).join('')}</div>
+        const linksContent = linkEntries.length
+            ? `<div class="link-list">${linkEntries.map((key) => `
+                <a href="${escapeHtml(links[key])}" target="_blank" rel="noopener noreferrer">
+                    ${LEADER_LINK_LABELS[key]}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>`).join('')}</div>`
+            : '';
+
+        // Only sections with real content become tabs — same conditional
+        // pattern the old markup used per-section, just collected into
+        // one list now instead of being unconditionally positioned.
+        const tabs = [
+            { id: 'expertise', label: 'Area of Expertise', html: educationContent },
+            { id: 'experience', label: 'Professional Experience', html: experienceContent },
+            { id: 'interests', label: 'Research Interests', html: interestsContent },
+            { id: 'interns', label: 'Open to Interns', html: openToContent },
+            { id: 'contact', label: 'Office Contact', html: officeContactContent },
+            { id: 'links', label: 'Links', html: linksContent }
+        ].filter((tab) => tab.html);
+
+        const tabsHtml = tabs.length
+            ? `<div class="leader-tabs" role="tablist" aria-label="${escapeHtml(lead.name)}'s profile sections">
+                ${tabs.map((tab, i) => `
+                    <button type="button" class="leader-tab${i === 0 ? ' active' : ''}" role="tab"
+                        aria-selected="${i === 0}" aria-controls="leader-panel-${tab.id}" id="leader-tab-${tab.id}"
+                        data-tab-target="${tab.id}">${escapeHtml(tab.label)}</button>`).join('')}
+            </div>
+            <div class="leader-tab-panels">
+                ${tabs.map((tab, i) => `
+                    <div class="leader-tab-panel${i === 0 ? ' active' : ''}" role="tabpanel"
+                        id="leader-panel-${tab.id}" aria-labelledby="leader-tab-${tab.id}"
+                        data-tab-panel="${tab.id}">${tab.html}</div>`).join('')}
             </div>`
             : '';
 
@@ -156,20 +163,41 @@
                         ${tagsHtml}
                     </div>
                 </div>
-                <div class="leader-body">
-                    <div class="leader-body-main">
-                        ${educationHtml}
-                        ${experienceHtml}
-                        ${officeContactHtml}
-                    </div>
-                    <div class="leader-body-side">
-                        ${interestsHtml}
-                        ${openToHtml}
-                        ${linksHtml}
-                    </div>
-                </div>
+                ${tabsHtml}
             </div>
         </section>`;
+
+        setupLeaderTabs(rootEl);
+    }
+
+    // Click-to-switch tabs for the leadership panel — same simple
+    // class-toggle approach as toggleCard()'s expand/collapse below, just
+    // for a tab bar instead of a single expand button. Only one panel
+    // visible at a time; each panel can internally scroll (see
+    // .leader-tab-panel in team.css) rather than growing the whole card
+    // taller for longer sections.
+    function setupLeaderTabs(rootEl) {
+        const tabButtons = rootEl.querySelectorAll('.leader-tab');
+        if (!tabButtons.length) return;
+
+        tabButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.getAttribute('data-tab-target');
+
+                rootEl.querySelectorAll('.leader-tab').forEach((b) => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-selected', 'false');
+                });
+                rootEl.querySelectorAll('.leader-tab-panel').forEach((p) => {
+                    p.classList.remove('active');
+                });
+
+                btn.classList.add('active');
+                btn.setAttribute('aria-selected', 'true');
+                const panel = rootEl.querySelector(`.leader-tab-panel[data-tab-panel="${targetId}"]`);
+                if (panel) panel.classList.add('active');
+            });
+        });
     }
 
     function renderProjects() {
@@ -300,8 +328,8 @@
     function cardHtml(member) {
         const meta = CATEGORY_META[member.category] || { tag: '' };
         const avatar = member.photo
-            ? `<img class="member-photo" style="width:56px;height:56px" src="${escapeHtml(member.photo)}" alt="${escapeHtml(member.name)}">`
-            : `<div class="avatar">${escapeHtml(getInitials(member.name))}</div>`;
+            ? `<img class="member-photo" style="width:44px;height:44px" src="${escapeHtml(member.photo)}" alt="${escapeHtml(member.name)}">`
+            : `<div class="avatar team-card-avatar">${escapeHtml(getInitials(member.name))}</div>`;
 
         const orgHtml = member.organization
             ? `<div class="team-card-org">${escapeHtml(member.organization)}</div>`
