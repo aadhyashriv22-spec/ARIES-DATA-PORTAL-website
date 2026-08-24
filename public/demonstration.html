@@ -206,11 +206,15 @@
                 <!-- RIGHT: course-style content panel -->
                 <div class="demo-content-card">
                     <div class="demo-tabs" role="tablist" aria-label="Demonstration content sections">
-                        <button class="demo-tab active" type="button" role="tab" aria-selected="true">Chapters</button>
-                        <button class="demo-tab" type="button" role="tab" aria-selected="false">Tutorials</button>
-                        <button class="demo-tab" type="button" role="tab" aria-selected="false">Presentations</button>
+                        <button class="demo-tab active" type="button" role="tab" aria-selected="true" data-tab="chapters">Chapters</button>
+                        <button class="demo-tab" type="button" role="tab" aria-selected="false" data-tab="tutorials">Tutorials</button>
+                        <button class="demo-tab" type="button" role="tab" aria-selected="false" data-tab="presentations">Presentations</button>
                     </div>
 
+                    <!-- Chapters panel — PDF-format material lives here per
+                         the site's own categorization (PDF -> Chapters,
+                         PPT -> Tutorials). -->
+                    <div class="demo-tab-panel active" data-tab-panel="chapters">
                     <div class="demo-chapter-list">
                         <div class="demo-chapter-item">
                             <span class="demo-chapter-num">01</span>
@@ -279,6 +283,53 @@
                     </div>
 
                     <button class="demo-view-all-btn" type="button">View All Chapters</button>
+
+                    <!-- Recommended Reading — citations only, not hosted
+                         files. These are complete, commercially-published
+                         academic textbooks (Cambridge University Press /
+                         Springer); redistributing the full text would be
+                         copyright infringement regardless of this being a
+                         demo page, so only bibliographic details are
+                         listed, matching how an academic reading list
+                         cites a book without attaching a copy of it. -->
+                    <div class="demo-reading-section">
+                        <h3 class="demo-reading-heading">Recommended Reading</h3>
+                        <ul class="demo-reading-list">
+                            <li class="demo-reading-item">
+                                <span class="demo-reading-title">Handbook of CCD Astronomy</span>
+                                <span class="demo-reading-meta">Steve B. Howell &middot; Cambridge Observing Handbooks for Research Astronomers, No. 5 &middot; Cambridge University Press, 2006</span>
+                            </li>
+                            <li class="demo-reading-item">
+                                <span class="demo-reading-title">The Design and Construction of Large Optical Telescopes</span>
+                                <span class="demo-reading-meta">Pierre-Yves Bely &middot; Astronomy and Astrophysics Library &middot; Springer, 2003</span>
+                            </li>
+                        </ul>
+                    </div>
+                    </div>
+
+                    <!-- Tutorials panel — PPT-format material lives here.
+                         Real presentation from an ARIES SSA team member,
+                         not placeholder content. -->
+                    <div class="demo-tab-panel" data-tab-panel="tutorials" style="display: none;">
+                        <div class="demo-chapter-list">
+                            <div class="demo-chapter-item">
+                                <a href="/assets/documents/fpga-cmos-controller-design.pptx"
+                                    class="demo-tutorial-link" download>
+                                    <span class="demo-chapter-num">01</span>
+                                    <div class="demo-chapter-body">
+                                        <div class="demo-chapter-title-row">
+                                            <span class="demo-chapter-title">FPGA-Based Controller Design for CMOS Camera Sensors</span>
+                                            <span class="demo-chapter-duration">12 slides</span>
+                                        </div>
+                                        <p class="demo-tutorial-desc">Zynq UltraScale+ MPSoC and GSENSE2020 sensor
+                                            integration &mdash; SPI configuration, LVDS output, and pin mapping for a
+                                            real-time telescope tracking controller.</p>
+                                        <span class="demo-tutorial-author">Jatin Ghai &middot; ARIES SSA Team</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="demo-presentations-section">
                         <div class="demo-presentations-header">
@@ -388,11 +439,13 @@
         (function () {
             document.addEventListener('DOMContentLoaded', function () {
                 // Tab switching — Chapters / Tutorials / Presentations.
-                // Only "Chapters" has real content wired up right now;
-                // the other two swap the active state so the UI reads as
-                // functional, without fabricating content for sections
-                // that don't exist yet.
+                // Chapters and Tutorials now show/hide real distinct
+                // panels (.demo-tab-panel[data-tab-panel]). Presentations
+                // has no separate panel of its own yet — "Recent ARIES
+                // Highlights" below stays visible regardless of tab,
+                // unchanged from before.
                 var tabs = document.querySelectorAll('.demo-tab');
+                var panels = document.querySelectorAll('.demo-tab-panel');
                 tabs.forEach(function (tab) {
                     tab.addEventListener('click', function () {
                         tabs.forEach(function (t) {
@@ -401,6 +454,11 @@
                         });
                         tab.classList.add('active');
                         tab.setAttribute('aria-selected', 'true');
+
+                        var target = tab.getAttribute('data-tab');
+                        panels.forEach(function (panel) {
+                            panel.style.display = panel.getAttribute('data-tab-panel') === target ? '' : 'none';
+                        });
                     });
                 });
 
