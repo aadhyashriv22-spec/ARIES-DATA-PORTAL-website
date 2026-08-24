@@ -369,6 +369,13 @@ body {
     /* No margin-bottom needed — this column's height is independent of
        the left column, so it doesn't need to "clear" anything below it
        the way a full-width stacked block would. */
+
+    /* Pulls the whole column up so "Current Projects" lands level with
+       "Behind the Mission" instead of starting lower, closing the empty
+       gap at the top of the right-hand column. Reset to 0 on the
+       stacked (<900px) layout below, where this column drops under the
+       left one and a negative offset would overlap it. */
+    margin-top: -92px;
 }
 
 .team-projects-header {
@@ -376,11 +383,17 @@ body {
 }
 
 .team-projects-header h2 {
+    display: inline-block;
     font-family: var(--font-heading);
-    font-size: 19px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
     color: #ffffff;
-    margin-bottom: 6px;
+    background: var(--color-accent-soft);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--border-radius-sm);
+    padding: 7px 16px;
+    margin-bottom: 10px;
 }
 
 .team-projects-header p {
@@ -1225,6 +1238,10 @@ body {
     .team-two-col-layout {
         grid-template-columns: 1fr;
         gap: 28px;
+    }
+
+    .team-projects-col {
+        margin-top: 0;
     }
 
     .team-layout {
