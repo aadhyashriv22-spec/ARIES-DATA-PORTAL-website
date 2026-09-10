@@ -44,7 +44,7 @@
         const lead = PROJECT_LEAD;
 
         const avatar = lead.photo
-            ? `<img class="member-photo leader-photo" src="${escapeHtml(lead.photo)}" alt="${escapeHtml(lead.name)}">`
+            ? `<img class="member-photo leader-photo" src="${escapeHtml(lead.photo)}" alt="${escapeHtml(lead.name)}" onerror="this.outerHTML='<div class=&quot;avatar leader-avatar&quot;>${escapeHtml(getInitials(lead.name))}</div>'">`
             : `<div class="avatar leader-avatar">${escapeHtml(getInitials(lead.name))}</div>`;
 
         const tagsHtml = (lead.researchAreas || []).length
@@ -328,7 +328,7 @@
     function cardHtml(member) {
         const meta = CATEGORY_META[member.category] || { tag: '' };
         const avatar = member.photo
-            ? `<img class="member-photo" style="width:44px;height:44px" src="${escapeHtml(member.photo)}" alt="${escapeHtml(member.name)}">`
+            ? `<img class="member-photo" style="width:44px;height:44px" src="${escapeHtml(member.photo)}" alt="${escapeHtml(member.name)}" onerror="this.outerHTML='<div class=&quot;avatar team-card-avatar&quot;>${escapeHtml(getInitials(member.name))}</div>'">`
             : `<div class="avatar team-card-avatar">${escapeHtml(getInitials(member.name))}</div>`;
 
         const orgHtml = member.organization

@@ -18,6 +18,87 @@
     <link rel="stylesheet" href="/css/portal.css">
     <link rel="stylesheet" href="/css/landing.css">
     <link rel="stylesheet" href="/css/demonstration.css">
+    <style>
+        .team-access-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(4, 8, 20, 0.72);
+            backdrop-filter: blur(3px);
+        }
+        .team-access-overlay.hidden { display: none; }
+        .team-access-modal {
+            position: relative;
+            width: min(360px, 90vw);
+            background: var(--color-surface, #0d1326);
+            border: 1px solid var(--color-border, rgba(255,255,255,0.12));
+            border-radius: 12px;
+            padding: 28px 24px 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .team-access-modal h3 {
+            margin: 0 0 8px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            color: var(--color-text-primary, #fff);
+        }
+        .team-access-sub {
+            margin: 0 0 18px;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            color: var(--color-text-secondary, #9aa4c0);
+        }
+        #team-access-form { display: flex; gap: 8px; }
+        #team-access-input {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--color-border, rgba(255,255,255,0.18));
+            background: rgba(255,255,255,0.04);
+            color: var(--color-text-primary, #fff);
+            font-size: 0.9rem;
+        }
+        .team-access-submit {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .team-access-close {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: var(--color-text-secondary, #9aa4c0);
+            font-size: 1.3rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .team-access-error {
+            margin: 12px 0 0;
+            font-size: 0.85rem;
+            color: #ff6b6b;
+        }
+        .team-access-error.hidden { display: none; }
+        .sr-only {
+            position: absolute;
+            width: 1px; height: 1px;
+            padding: 0; margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            border: 0;
+        }
+    </style>
 </head>
 
 <body>
@@ -106,6 +187,8 @@
                     <ul>
                         <li><a href="/team.html">Project Members</a></li>
                         <li><a href="/demonstration.html">Optical Tracking Demo</a></li>
+                        <li><a href="/new-to-ssa.html">New to SSA?</a></li>
+                        <li><a href="/team-workspace.html">Team Workspace</a></li>
                     </ul>
                 </div>
 
@@ -135,28 +218,65 @@
 
     <main id="main-content" style="padding-top: var(--header-height, 80px);">
 
-        <!-- Demonstration dashboard — two-column layout: left is the
-             original telescope+satellite optical-tracking WebGL scene
-             (see telescope-scene.js), right is a course-style content
-             panel (chapters, tutorials, presentations with an upload
-             placeholder). Bottom stats bar is explicitly illustrative —
-             see the disclaimer note — matching the "Simulation only"
-             framing already used elsewhere on this site. -->
+        <!-- Demonstration page — WebGL telescope+satellite optical-tracking
+             scene (see telescope-scene.js), followed by a two-button
+             audience selector linking to the dedicated New to SSA /
+             Team Workspace pages. Bottom stats bar is explicitly
+             illustrative — see the disclaimer note — matching the
+             "Simulation only" framing already used elsewhere on this site. -->
         <section class="demo-dashboard-section" aria-labelledby="demo-dashboard-heading">
-            <div class="portal-intro">
-                <h1 id="demo-dashboard-heading">Interactive Optical Tracking Demonstration</h1>
-                <p>Optical tracking uses ground-based telescopes to observe reflected sunlight from satellites and
-                    orbital debris, recording precise angular measurements as objects pass overhead. Combined with
-                    orbit determination techniques, these observations help build and refine a catalog of tracked
-                    objects — supporting collision avoidance, re-entry prediction, and broader space situational
-                    awareness efforts. The simulation below illustrates how a telescope mount rotates and tilts to
-                    follow a simulated target, alongside reference training material on the underlying data
-                    acquisition and analysis methods.</p>
-                <div class="demo-topic-tags">
-                    <span class="demo-topic-tag">Optical Tracking</span>
-                    <span class="demo-topic-tag">Orbit Determination</span>
-                    <span class="demo-topic-tag">Conjunction Screening</span>
-                    <span class="demo-topic-tag">Data Fusion</span>
+            <div class="demo-intro-row">
+                <div class="portal-intro demo-intro-text">
+                    <h1 id="demo-dashboard-heading">Interactive Optical Tracking Demonstration</h1>
+                    <p>Optical tracking uses ground-based telescopes to observe reflected sunlight from satellites
+                        and orbital debris, recording precise angular measurements as objects pass overhead.
+                        Combined with orbit determination techniques, these observations help build and refine a
+                        catalog of tracked objects — supporting collision avoidance, re-entry prediction, and
+                        broader space situational awareness efforts. The simulation below illustrates how a
+                        telescope mount rotates and tilts to follow a simulated target, alongside reference
+                        training material on the underlying data acquisition and analysis methods.</p>
+                    <div class="demo-topic-tags">
+                        <span class="demo-topic-tag">Optical Tracking</span>
+                        <span class="demo-topic-tag">Orbit Determination</span>
+                        <span class="demo-topic-tag">Conjunction Screening</span>
+                        <span class="demo-topic-tag">Data Fusion</span>
+                    </div>
+                </div>
+
+                <!-- Compact audience selector, now living beside the intro
+                     heading instead of its own large standalone section
+                     lower on the page. -->
+                <aside class="demo-intro-audience" aria-labelledby="audience-select-heading">
+                    <h2 id="audience-select-heading">What are you looking for?</h2>
+                    <p>Choose the path that matches you.</p>
+                    <div class="demo-intro-audience-buttons">
+                        <a href="/new-to-ssa.html" class="audience-select-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                            <span>New to SSA?</span>
+                        </a>
+                        <a href="/team-workspace.html" id="team-access-trigger" class="audience-select-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                            <span>Team Member?</span>
+                        </a>
+                    </div>
+                </aside>
+
+                <!-- Team Workspace passcode gate. Hidden by default; opened
+                     by the "Team Member?" link above via JS instead of
+                     navigating straight through. See script at bottom of
+                     page for behavior. -->
+                <div id="team-access-overlay" class="team-access-overlay hidden" aria-hidden="true">
+                    <div class="team-access-modal" role="dialog" aria-modal="true" aria-labelledby="team-access-heading">
+                        <button type="button" id="team-access-close" class="team-access-close" aria-label="Close">&times;</button>
+                        <h3 id="team-access-heading">Team Workspace Access</h3>
+                        <p class="team-access-sub">This area holds internal PPTs, module notes, and meeting minutes for the ARIES SSA team. Enter the team passcode to continue.</p>
+                        <form id="team-access-form" novalidate>
+                            <label for="team-access-input" class="sr-only">Passcode</label>
+                            <input type="password" id="team-access-input" name="passcode" placeholder="Enter passcode" autocomplete="off" required>
+                            <button type="submit" class="btn-portal-access team-access-submit">Enter</button>
+                        </form>
+                        <p id="team-access-error" class="team-access-error hidden" role="alert">Access denied — incorrect passcode.</p>
+                    </div>
                 </div>
             </div>
 
@@ -202,181 +322,6 @@
                         tracking data. Drag to rotate the view.
                     </p>
                 </div>
-
-                <!-- RIGHT: course-style content panel -->
-                <div class="demo-content-card">
-                    <div class="demo-tabs" role="tablist" aria-label="Demonstration content sections">
-                        <button class="demo-tab active" type="button" role="tab" aria-selected="true" data-tab="chapters">Chapters</button>
-                        <button class="demo-tab" type="button" role="tab" aria-selected="false" data-tab="tutorials">Tutorials</button>
-                        <button class="demo-tab" type="button" role="tab" aria-selected="false" data-tab="presentations">Presentations</button>
-                    </div>
-
-                    <!-- Chapters panel — PDF-format material lives here per
-                         the site's own categorization (PDF -> Chapters,
-                         PPT -> Tutorials). -->
-                    <div class="demo-tab-panel active" data-tab-panel="chapters">
-                    <div class="demo-chapter-list">
-                        <div class="demo-chapter-item">
-                            <span class="demo-chapter-num">01</span>
-                            <div class="demo-chapter-body">
-                                <div class="demo-chapter-title-row">
-                                    <span class="demo-chapter-title">Orbital Mechanics Fundamentals</span>
-                                    <span class="demo-chapter-duration">12 min</span>
-                                </div>
-                                <div class="demo-chapter-progress-track">
-                                    <div class="demo-chapter-progress-fill" style="width: 25%;"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="demo-chapter-item">
-                            <span class="demo-chapter-num">02</span>
-                            <div class="demo-chapter-body">
-                                <div class="demo-chapter-title-row">
-                                    <span class="demo-chapter-title">Optical Tracking Principles</span>
-                                    <span class="demo-chapter-duration">16 min</span>
-                                </div>
-                                <div class="demo-chapter-progress-track">
-                                    <div class="demo-chapter-progress-fill" style="width: 50%;"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="demo-chapter-item">
-                            <span class="demo-chapter-num">03</span>
-                            <div class="demo-chapter-body">
-                                <div class="demo-chapter-title-row">
-                                    <span class="demo-chapter-title">Data Acquisition &amp; Reduction</span>
-                                    <span class="demo-chapter-duration">18 min</span>
-                                </div>
-                                <div class="demo-chapter-progress-track">
-                                    <div class="demo-chapter-progress-fill" style="width: 10%;"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="demo-chapter-item">
-                            <span class="demo-chapter-num">04</span>
-                            <div class="demo-chapter-body">
-                                <div class="demo-chapter-title-row">
-                                    <span class="demo-chapter-title">Orbit Determination &amp; Prediction</span>
-                                    <span class="demo-chapter-duration">20 min</span>
-                                </div>
-                                <div class="demo-chapter-progress-track">
-                                    <div class="demo-chapter-progress-fill" style="width: 0%;"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="demo-chapter-item">
-                            <span class="demo-chapter-num">05</span>
-                            <div class="demo-chapter-body">
-                                <div class="demo-chapter-title-row">
-                                    <span class="demo-chapter-title">SSA Applications &amp; Use Cases</span>
-                                    <span class="demo-chapter-duration">15 min</span>
-                                </div>
-                                <div class="demo-chapter-progress-track">
-                                    <div class="demo-chapter-progress-fill" style="width: 0%;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button class="demo-view-all-btn" type="button">View All Chapters</button>
-
-                    <!-- Recommended Reading — citations only, not hosted
-                         files. These are complete, commercially-published
-                         academic textbooks (Cambridge University Press /
-                         Springer); redistributing the full text would be
-                         copyright infringement regardless of this being a
-                         demo page, so only bibliographic details are
-                         listed, matching how an academic reading list
-                         cites a book without attaching a copy of it. -->
-                    <div class="demo-reading-section">
-                        <h3 class="demo-reading-heading">Recommended Reading</h3>
-                        <ul class="demo-reading-list">
-                            <li class="demo-reading-item">
-                                <span class="demo-reading-title">Handbook of CCD Astronomy</span>
-                                <span class="demo-reading-meta">Steve B. Howell &middot; Cambridge Observing Handbooks for Research Astronomers, No. 5 &middot; Cambridge University Press, 2006</span>
-                            </li>
-                            <li class="demo-reading-item">
-                                <span class="demo-reading-title">The Design and Construction of Large Optical Telescopes</span>
-                                <span class="demo-reading-meta">Pierre-Yves Bely &middot; Astronomy and Astrophysics Library &middot; Springer, 2003</span>
-                            </li>
-                        </ul>
-                    </div>
-                    </div>
-
-                    <!-- Tutorials panel — PPT-format material lives here.
-                         Real presentation from an ARIES SSA team member,
-                         not placeholder content. -->
-                    <div class="demo-tab-panel" data-tab-panel="tutorials" style="display: none;">
-                        <div class="demo-chapter-list">
-                            <div class="demo-chapter-item">
-                                <a href="/assets/documents/fpga-cmos-controller-design.pptx"
-                                    class="demo-tutorial-link" download>
-                                    <span class="demo-chapter-num">01</span>
-                                    <div class="demo-chapter-body">
-                                        <div class="demo-chapter-title-row">
-                                            <span class="demo-chapter-title">FPGA-Based Controller Design for CMOS Camera Sensors</span>
-                                            <span class="demo-chapter-duration">12 slides</span>
-                                        </div>
-                                        <p class="demo-tutorial-desc">Zynq UltraScale+ MPSoC and GSENSE2020 sensor
-                                            integration &mdash; SPI configuration, LVDS output, and pin mapping for a
-                                            real-time telescope tracking controller.</p>
-                                        <span class="demo-tutorial-author">Jatin Ghai &middot; ARIES SSA Team</span>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="demo-presentations-section">
-                        <div class="demo-presentations-header">
-                            <h3>Recent ARIES Highlights</h3>
-                            <a href="https://www.aries.res.in/announcement" target="_blank" rel="noopener noreferrer"
-                                class="demo-view-all-link">View All</a>
-                        </div>
-
-                        <!-- Real, current ARIES announcements as of this
-                             writing (aries.res.in/aries-0), paraphrased and
-                             linked to their actual source pages rather than
-                             fabricated titles. -->
-                        <ul class="demo-file-list">
-                            <li class="demo-file-item">
-                                <a href="https://www.aries.res.in/excodot-2025" target="_blank" rel="noopener noreferrer" class="demo-file-link">
-                                    <span class="demo-file-icon demo-file-icon-pdf" aria-hidden="true">ARIES</span>
-                                    <span class="demo-file-name">ExCoDOT-2025: Science Results from the 3.6-m Devasthal Optical Telescope</span>
-                                    <span class="demo-file-date">Oct 2025</span>
-                                </a>
-                            </li>
-                            <li class="demo-file-item">
-                                <a href="https://www.aries.res.in/node/2272" target="_blank" rel="noopener noreferrer" class="demo-file-link">
-                                    <span class="demo-file-icon demo-file-icon-ppt" aria-hidden="true">ARIES</span>
-                                    <span class="demo-file-name">14th Aditya-L1 Support Cell Workshop</span>
-                                    <span class="demo-file-date">2026</span>
-                                </a>
-                            </li>
-                            <li class="demo-file-item">
-                                <a href="https://www.aries.res.in/node/2275" target="_blank" rel="noopener noreferrer" class="demo-file-link">
-                                    <span class="demo-file-icon demo-file-icon-pdf" aria-hidden="true">ARIES</span>
-                                    <span class="demo-file-name">AI-Assisted Analysis of a Century of Kodaikanal Solar Observatory Imagery</span>
-                                    <span class="demo-file-date">2026</span>
-                                </a>
-                            </li>
-                        </ul>
-
-                        <!-- Upload placeholder — decorative only (no backend
-                             wired up); shows the selected filename as a
-                             lightweight local preview so it reads as
-                             functional-in-spirit rather than dead UI. -->
-                        <label for="demo-file-upload" class="demo-upload-placeholder">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                            <span id="demo-upload-label-text">Click or drag to add a PDF or PPT</span>
-                            <input type="file" id="demo-file-upload" accept=".pdf,.ppt,.pptx" hidden>
-                        </label>
-                    </div>
-                </div>
             </div>
 
             <!-- Stats bar — first three figures are verifiable facts about
@@ -415,8 +360,7 @@
                 </div>
             </div>
             <p class="demo-stats-disclaimer">Telescope, campus, and division counts reflect ARIES's published
-                facilities as of this writing (aries.res.in). Chapter/presentation content above is illustrative
-                training material, not live tracking data.</p>
+                facilities as of this writing (aries.res.in).</p>
         </section>
 
     </main>
@@ -430,7 +374,7 @@
         </div>
     </footer>
 
-    <!-- Three.js CDN + the new orbital demo scene. -->
+    <!-- Three.js CDN + the demo scene. -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     <script src="/js/telescope-scene.js" defer></script>
     <script src="/js/landing.js" defer></script>
@@ -438,42 +382,6 @@
     <script>
         (function () {
             document.addEventListener('DOMContentLoaded', function () {
-                // Tab switching — Chapters / Tutorials / Presentations.
-                // Chapters and Tutorials now show/hide real distinct
-                // panels (.demo-tab-panel[data-tab-panel]). Presentations
-                // has no separate panel of its own yet — "Recent ARIES
-                // Highlights" below stays visible regardless of tab,
-                // unchanged from before.
-                var tabs = document.querySelectorAll('.demo-tab');
-                var panels = document.querySelectorAll('.demo-tab-panel');
-                tabs.forEach(function (tab) {
-                    tab.addEventListener('click', function () {
-                        tabs.forEach(function (t) {
-                            t.classList.remove('active');
-                            t.setAttribute('aria-selected', 'false');
-                        });
-                        tab.classList.add('active');
-                        tab.setAttribute('aria-selected', 'true');
-
-                        var target = tab.getAttribute('data-tab');
-                        panels.forEach(function (panel) {
-                            panel.style.display = panel.getAttribute('data-tab-panel') === target ? '' : 'none';
-                        });
-                    });
-                });
-
-                // Upload placeholder — decorative, no backend. Shows the
-                // chosen filename locally so it doesn't feel like dead UI,
-                // without claiming to actually upload anything anywhere.
-                var fileInput = document.getElementById('demo-file-upload');
-                var uploadLabelText = document.getElementById('demo-upload-label-text');
-                if (fileInput && uploadLabelText) {
-                    fileInput.addEventListener('change', function () {
-                        if (fileInput.files && fileInput.files[0]) {
-                            uploadLabelText.textContent = fileInput.files[0].name + ' selected (not uploaded — demo only)';
-                        }
-                    });
-                }
 
                 // "Last Updated" — a simple relative-time readout,
                 // consistent with the stats bar's own "illustrative
@@ -485,6 +393,83 @@
                         var mins = Math.floor((Date.now() - loadTime) / 60000);
                         lastUpdatedEl.textContent = mins < 1 ? 'just now' : (mins + ' min ago');
                     }, 15000);
+                }
+
+                // --- Team Workspace passcode gate --------------------------
+                var trigger = document.getElementById('team-access-trigger');
+                var overlay = document.getElementById('team-access-overlay');
+                var closeBtn = document.getElementById('team-access-close');
+                var form = document.getElementById('team-access-form');
+                var input = document.getElementById('team-access-input');
+                var errorEl = document.getElementById('team-access-error');
+
+                function openModal() {
+                    errorEl.classList.add('hidden');
+                    input.value = '';
+                    overlay.classList.remove('hidden');
+                    overlay.setAttribute('aria-hidden', 'false');
+                    input.focus();
+                }
+
+                function closeModal() {
+                    overlay.classList.add('hidden');
+                    overlay.setAttribute('aria-hidden', 'true');
+                }
+
+                if (trigger && overlay && form) {
+                    trigger.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        openModal();
+                    });
+
+                    closeBtn.addEventListener('click', closeModal);
+
+                    overlay.addEventListener('click', function (e) {
+                        if (e.target === overlay) closeModal();
+                    });
+
+                    document.addEventListener('keydown', function (e) {
+                        if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeModal();
+                    });
+
+                    form.addEventListener('submit', function (e) {
+                        e.preventDefault();
+                        errorEl.classList.add('hidden');
+
+                        fetch('/api/team-access', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ passcode: input.value })
+                        })
+                            .then(function (res) { return res.json(); })
+                            .then(function (data) {
+                                if (data.ok) {
+                                    window.location.href = '/team-workspace.html';
+                                } else {
+                                    errorEl.textContent = data.message || 'Access denied — incorrect passcode.';
+                                    errorEl.classList.remove('hidden');
+                                    input.value = '';
+                                    input.focus();
+                                }
+                            })
+                            .catch(function () {
+                                errorEl.textContent = 'Something went wrong — please try again.';
+                                errorEl.classList.remove('hidden');
+                            });
+                    });
+                }
+
+                // If the server bounced someone back here from a direct,
+                // un-authenticated hit on /team-workspace.html, open the
+                // modal automatically and show why.
+                var params = new URLSearchParams(window.location.search);
+                if (params.get('teamAccess') === 'denied' && trigger) {
+                    openModal();
+                    errorEl.textContent = 'Please enter the team passcode to access the workspace.';
+                    errorEl.classList.remove('hidden');
+                    // Clean the query string so a refresh doesn't reopen it
+                    var cleanUrl = window.location.pathname;
+                    window.history.replaceState({}, '', cleanUrl);
                 }
             });
         })();

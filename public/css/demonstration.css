@@ -28,7 +28,34 @@ body {
     padding: 40px 24px 80px;
 }
 
+/* Two-column intro row: heading/paragraph/tags on the left, compact
+   audience selector on the right — replaces the old single-column intro
+   followed by a large standalone "What are you looking for?" section
+   further down the page. */
+.demo-intro-row {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 32px;
+    align-items: stretch;
+}
+
+.demo-intro-text {
+    margin-bottom: 0;
+}
+
+/* Expanded heading/paragraph — noticeably larger than portal.css's base
+   .portal-intro sizing (26px/14px), since this page's intro is meant to
+   carry more visual weight now that it also anchors the audience
+   selector beside it. */
+.demo-intro-text h1 {
+    font-size: 34px !important;
+    line-height: 1.2;
+    margin-bottom: 14px !important;
+}
+
 .demo-dashboard-section .portal-intro p {
+    font-size: 16px;
+    line-height: 1.7;
     max-width: 78ch;
 }
 
@@ -50,12 +77,74 @@ body {
     letter-spacing: 0.01em;
 }
 
+/* Compact audience selector — same underlying buttons/links as before,
+   but sized to sit as a sidebar widget next to the heading rather than
+   its own large centered section. */
+.demo-intro-audience {
+    background: var(--color-navy-panel);
+    border: 1px solid var(--color-border-glow, rgba(79, 127, 214, 0.3));
+    border-radius: var(--border-radius-md);
+    padding: 28px;
+    box-shadow: 0 0 30px rgba(79, 127, 214, 0.06);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.demo-intro-audience h2 {
+    font-family: var(--font-heading);
+    font-size: 21px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
+
+.demo-intro-audience p {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    margin-bottom: 20px;
+}
+
+.demo-intro-audience-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.demo-intro-audience-buttons .audience-select-btn {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 16px 22px;
+    font-size: 15px;
+}
+
+.demo-intro-audience-buttons .audience-select-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Breaks out of .demo-dashboard-section's 1120px max-width to span the
+   full viewport, matching the home page hero's edge-to-edge treatment —
+   previously this stayed inside the 1120px container AND had its own
+   720px cap on top of that, leaving a large unused void on wide screens.
+   Standard full-bleed-child-of-centered-parent technique: 100vw width,
+   pulled back to center via negative margins computed from the
+   difference between viewport and current position. */
 .demo-dashboard-grid {
-    display: grid;
-    grid-template-columns: 1.15fr 1fr;
-    gap: 24px;
-    align-items: start;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
     margin-top: 32px;
+    padding: 0 24px;
+    box-sizing: border-box;
+}
+
+.demo-viz-card {
+    max-width: 1280px;
+    margin: 0 auto;
 }
 
 /* ---------- Left: WebGL orbital visualization card ---------- */
@@ -123,7 +212,7 @@ body {
 .demo-orbit-canvas {
     position: relative;
     width: 100%;
-    height: 460px;
+    height: 480px;
     cursor: grab;
     background: radial-gradient(ellipse at 60% 40%, #0a1626 0%, #05080f 75%);
 }
@@ -215,326 +304,35 @@ body {
     margin: 0;
 }
 
-/* ---------- Right: course-content card ---------- */
+/* ---------- Audience selector buttons — used inside .demo-intro-audience now ---------- */
 
-.demo-content-card {
+.audience-select-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
     background: var(--color-navy-solid);
     border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-md);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-.demo-tabs {
-    display: flex;
-    gap: 4px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: var(--border-radius-sm);
-    padding: 4px;
-    margin-bottom: 18px;
-}
-
-.demo-tab {
-    flex: 1;
-    background: transparent;
-    border: none;
     color: var(--color-text-muted);
-    font-family: var(--font-body);
-    font-size: 12.5px;
-    font-weight: 500;
-    padding: 8px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.demo-tab.active {
-    background: var(--color-accent);
-    color: #ffffff;
-}
-
-.demo-tab:not(.active):hover {
-    color: var(--color-text);
-}
-
-.demo-chapter-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.demo-chapter-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 10px 6px;
-    border-radius: var(--border-radius-sm);
-    transition: background 0.15s ease;
-}
-
-.demo-chapter-item:hover {
-    background: rgba(255, 255, 255, 0.025);
-}
-
-.demo-chapter-num {
-    flex-shrink: 0;
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--color-accent-soft);
-    color: var(--color-accent-hover);
     font-family: var(--font-heading);
-    font-size: 11px;
+    font-size: 16px;
     font-weight: 700;
-    border-radius: 6px;
-}
-
-.demo-chapter-body {
-    flex: 1;
-    min-width: 0;
-}
-
-.demo-chapter-title-row {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 7px;
-}
-
-.demo-chapter-title {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--color-text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.demo-chapter-duration {
-    flex-shrink: 0;
-    font-size: 11px;
-    color: var(--color-text-muted);
-}
-
-.demo-chapter-progress-track {
-    width: 100%;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.demo-chapter-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--color-accent), #2ec4b6);
-    border-radius: 2px;
-}
-
-.demo-view-all-btn {
-    width: 100%;
-    margin-top: 14px;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--color-border);
-    color: var(--color-text-muted);
-    font-family: var(--font-body);
-    font-size: 12.5px;
-    font-weight: 500;
-    border-radius: var(--border-radius-sm);
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.demo-view-all-btn:hover {
-    color: var(--color-text);
-    border-color: var(--color-accent);
-}
-
-/* ---------- Recommended Reading (citations only, no hosted file) ---------- */
-
-.demo-reading-section {
-    margin-top: 22px;
-    padding-top: 18px;
-    border-top: 1px solid var(--color-border);
-}
-
-.demo-reading-heading {
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--color-text);
-    margin-bottom: 10px;
-}
-
-.demo-reading-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.demo-reading-item {
-    padding: 8px 6px;
-}
-
-.demo-reading-title {
-    display: block;
-    font-size: 12.5px;
-    font-weight: 500;
-    color: var(--color-text);
-    margin-bottom: 3px;
-}
-
-.demo-reading-meta {
-    display: block;
-    font-size: 11px;
-    color: var(--color-text-muted);
-    line-height: 1.4;
-}
-
-/* ---------- Tutorials panel ---------- */
-
-.demo-tutorial-link {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
+    padding: 18px 34px;
+    border-radius: 50px;
     text-decoration: none;
-    color: inherit;
-    width: 100%;
+    transition: all 0.2s ease;
 }
 
-.demo-tutorial-desc {
-    font-size: 11.5px;
-    color: var(--color-text-muted);
-    line-height: 1.5;
-    margin: 6px 0;
-}
-
-.demo-tutorial-author {
-    font-size: 10.5px;
-    color: var(--color-accent-hover);
-    font-weight: 500;
-}
-
-.demo-presentations-section {
-    margin-top: 24px;
-    padding-top: 20px;
-    border-top: 1px solid var(--color-border);
-}
-
-.demo-presentations-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-}
-
-.demo-presentations-header h3 {
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--color-text);
-}
-
-.demo-view-all-link {
-    font-size: 11.5px;
-    color: var(--color-accent-hover);
-    font-weight: 500;
-}
-
-.demo-view-all-link:hover {
-    text-decoration: underline;
-}
-
-.demo-file-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.demo-file-item {
-    display: block;
-}
-
-.demo-file-link {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 6px;
-    border-radius: var(--border-radius-sm);
-    color: inherit;
-    text-decoration: none;
-    transition: background 0.15s ease;
-}
-
-.demo-file-link:hover {
-    background: rgba(255, 255, 255, 0.025);
-}
-
-.demo-file-icon {
-    flex-shrink: 0;
-    width: 38px;
+.audience-select-btn svg {
+    width: 22px;
     height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 7.5px;
-    font-weight: 700;
-    font-family: var(--font-heading);
-    border-radius: 4px;
-    letter-spacing: 0.01em;
 }
 
-.demo-file-icon-pdf {
-    background: rgba(226, 92, 92, 0.15);
-    color: #e88a8a;
-}
-
-.demo-file-icon-ppt {
-    background: rgba(232, 145, 61, 0.15);
-    color: #e8a35f;
-}
-
-.demo-file-name {
-    flex: 1;
-    min-width: 0;
-    font-size: 12px;
-    color: var(--color-text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.demo-file-date {
-    flex-shrink: 0;
-    font-size: 10.5px;
-    color: var(--color-text-muted);
-    opacity: 0.7;
-}
-
-.demo-upload-placeholder {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 10px;
-    padding: 12px 14px;
-    border: 1px dashed var(--color-border-glow, rgba(79, 127, 214, 0.3));
-    border-radius: var(--border-radius-sm);
-    color: var(--color-text-muted);
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.demo-upload-placeholder:hover {
+.audience-select-btn:hover {
+    color: #ffffff;
     border-color: var(--color-accent);
-    color: var(--color-text);
     background: var(--color-accent-soft);
+    transform: translateY(-2px);
 }
-
 /* ---------- Stats bar ---------- */
 
 .demo-stats-bar {
@@ -587,18 +385,43 @@ body {
 /* ---------- Responsive ---------- */
 
 @media (max-width: 992px) {
-    .demo-dashboard-grid {
+    .demo-intro-row {
         grid-template-columns: 1fr;
     }
 
+    .demo-viz-card {
+        max-width: none;
+    }
+
     .demo-orbit-canvas {
-        height: 400px;
+        height: 380px;
     }
 }
 
 @media (max-width: 600px) {
     .demo-dashboard-section {
         padding: 24px 16px 56px;
+    }
+
+    .demo-dashboard-grid {
+        padding: 0 16px;
+    }
+
+    .demo-intro-row {
+        grid-template-columns: 1fr;
+    }
+
+    .demo-intro-text h1 {
+        font-size: 26px !important;
+    }
+
+    .demo-intro-audience-buttons {
+        flex-direction: row;
+    }
+
+    .demo-intro-audience-buttons .audience-select-btn {
+        flex: 1;
+        justify-content: center;
     }
 
     .demo-orbit-canvas {

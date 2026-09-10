@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New to SSA? — ARIES SSA Data Portal</title>
+    <meta name="description" content="A beginner-friendly introduction to Space Situational Awareness.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/landing.css">
+    <link rel="stylesheet" href="/css/audience-pages.css">
+</head>
+
+<body>
+
+    <!-- The old Chapters/Recommended Reading content from demonstration.html
+         has been migrated into the "Learning Resources" section below
+         (see new-to-ssa-data.js for the actual data). -->
+
+    <div class="space-background-system" aria-hidden="true">
+        <div class="stars-layer stars-distant"></div>
+        <div class="stars-layer stars-mid"></div>
+        <div class="stars-layer stars-twinkle"></div>
+    </div>
+
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <!-- Fixed Header (identical markup to demonstration.html / team.html) -->
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <button id="hamburger-btn" class="hamburger-btn" aria-label="Open navigation drawer"
+                    aria-expanded="false" aria-controls="nav-drawer">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+                <div class="brand">
+                    <span class="brand-logo-mark" aria-hidden="true">A</span>
+                    <div class="brand-text">
+                        <span class="brand-name">ARIES</span>
+                        <span class="brand-subtitle">SSA Data Portal</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="desktop-nav" aria-label="Desktop Primary">
+                <ul>
+                    <li><a href="/landing.html#main-content">Home</a></li>
+                    <li><a href="/landing.html#about">About</a></li>
+                    <li><a href="/demonstration.html" class="active" aria-current="page">Demonstration</a></li>
+                    <li><a href="/team.html">Team</a></li>
+                    <li><a href="/landing.html#updates">Updates</a></li>
+                    <li><a href="/landing.html#access">Data Access</a></li>
+                    <li><a href="/landing.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-actions">
+                <a class="btn-portal-access" href="/portal">Access Portal</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Drawer (identical markup to demonstration.html / team.html) -->
+    <div id="drawer-overlay" class="drawer-overlay" aria-hidden="true"></div>
+    <nav id="nav-drawer" class="nav-drawer" aria-label="Main Navigation Drawer" aria-hidden="true">
+        <div class="drawer-header">
+            <div class="drawer-brand">
+                <span class="brand-logo-mark" aria-hidden="true">A</span>
+                <div>
+                    <h3>ARIES SSA Portal</h3>
+                    <p>Observational Data Repository</p>
+                </div>
+            </div>
+            <button id="close-drawer-btn" class="close-drawer-btn" aria-label="Close navigation drawer">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <div class="drawer-content">
+            <div class="drawer-meta-info">
+                <h4>Space Situational Awareness</h4>
+                <p>Government Scientific Research Infrastructure</p>
+            </div>
+
+            <div class="drawer-groups">
+                <div class="drawer-group">
+                    <h5>Home</h5>
+                    <ul>
+                        <li><a href="/landing.html#main-content">Portal Home</a></li>
+                    </ul>
+                </div>
+
+                <div class="drawer-group">
+                    <h5>Team &amp; Demonstration</h5>
+                    <ul>
+                        <li><a href="/team.html">Project Members</a></li>
+                        <li><a href="/demonstration.html">Optical Tracking Demo</a></li>
+                        <li><a href="/new-to-ssa.html">New to SSA?</a></li>
+                        <li><a href="/team-workspace.html">Team Workspace</a></li>
+                    </ul>
+                </div>
+
+                <div class="drawer-group">
+                    <h5>Data Repository</h5>
+                    <ul>
+                        <li><a href="/portal">Optical Tracking Data</a></li>
+                        <li><a href="/portal">Satellite Observations</a></li>
+                        <li><a href="/portal">Downloads</a></li>
+                    </ul>
+                </div>
+
+                <div class="drawer-group">
+                    <h5>Contact</h5>
+                    <ul>
+                        <li><a href="/landing.html#contact">Contact ARIES</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="drawer-footer">
+            <a class="btn-drawer-action primary" href="/portal">Access Data Portal</a>
+            <a class="btn-drawer-action secondary" href="/landing.html#contact">Request Research Access</a>
+        </div>
+    </nav>
+
+    <main id="main-content" style="padding-top: var(--header-height, 80px);">
+
+        <div class="audience-page-topbar">
+            <nav class="breadcrumb" aria-label="Breadcrumb">
+                <a href="/demonstration.html">Demonstration</a>
+                <span aria-hidden="true">/</span>
+                <span aria-current="page">New to SSA</span>
+            </nav>
+            <a href="/demonstration.html" class="back-link">&larr; Back to Demonstration</a>
+        </div>
+
+        <div class="ssa-journey">
+
+            <!-- ============================================================
+                 01 — START HERE
+                 Combines intro + "why it matters" into one opening section,
+                 plus the SSA process as a horizontal flow. Each step reveals
+                 its description on hover/tap rather than showing everything
+                 at once.
+                 ============================================================ -->
+            <section class="journey-block" id="start-here" aria-labelledby="start-here-heading">
+                <div class="journey-block-head">
+                    <span class="journey-num">01</span>
+                    <h1 id="start-here-heading">Start Here</h1>
+                </div>
+                <p class="journey-intro">
+                    <strong>Space Situational Awareness (SSA)</strong> is the ability to detect, track, and
+                    understand objects in Earth orbit. As space gets more crowded, SSA is what keeps active
+                    satellites safe, predicts re-entries, and keeps orbit sustainable for everyone using it.
+                </p>
+
+                <div class="flow-row">
+                    <div class="flow-step" tabindex="0">
+                        <div class="flow-step-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/></svg>
+                        </div>
+                        <span class="flow-step-label">Observation</span>
+                        <p class="flow-step-desc">Telescopes and sensors detect objects in orbit.</p>
+                    </div>
+                    <span class="flow-arrow" aria-hidden="true">&rarr;</span>
+                    <div class="flow-step" tabindex="0">
+                        <div class="flow-step-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+                        </div>
+                        <span class="flow-step-label">Tracking</span>
+                        <p class="flow-step-desc">Repeated observations follow an object across its orbit.</p>
+                    </div>
+                    <span class="flow-arrow" aria-hidden="true">&rarr;</span>
+                    <div class="flow-step" tabindex="0">
+                        <div class="flow-step-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+                        </div>
+                        <span class="flow-step-label">Analysis</span>
+                        <p class="flow-step-desc">Observations combine into a precise orbit estimate.</p>
+                    </div>
+                    <span class="flow-arrow" aria-hidden="true">&rarr;</span>
+                    <div class="flow-step" tabindex="0">
+                        <div class="flow-step-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h7v8l10-12h-7z"/></svg>
+                        </div>
+                        <span class="flow-step-label">Prediction</span>
+                        <p class="flow-step-desc">Future positions and risks are forecast ahead of time.</p>
+                    </div>
+                </div>
+            </section>
+
+            <hr class="journey-divider">
+
+            <!-- ============================================================
+                 02 — UNDERSTANDING SSA
+                 Compact expandable term cards, collapsed by default.
+                 ============================================================ -->
+            <section class="journey-block" id="understanding" aria-labelledby="understanding-heading">
+                <div class="journey-block-head">
+                    <span class="journey-num">02</span>
+                    <h2 id="understanding-heading">Understanding SSA</h2>
+                </div>
+                <div class="term-grid" id="term-grid"></div>
+            </section>
+
+            <hr class="journey-divider">
+
+            <!-- ============================================================
+                 03 — LEARN & EXPLORE
+                 3 category cards, each expands to reveal its resources.
+                 ============================================================ -->
+            <section class="journey-block" id="learn-explore" aria-labelledby="learn-explore-heading">
+                <div class="journey-block-head">
+                    <span class="journey-num">03</span>
+                    <h2 id="learn-explore-heading">Learn &amp; Explore</h2>
+                </div>
+                <div class="category-row" id="category-row"></div>
+            </section>
+
+            <hr class="journey-divider">
+
+            <!-- ============================================================
+                 04 — THE SSA ECOSYSTEM
+                 Compact org badges; click reveals detail in a shared panel
+                 below instead of each tile growing independently.
+                 ============================================================ -->
+            <section class="journey-block" id="ecosystem" aria-labelledby="ecosystem-heading">
+                <div class="journey-block-head">
+                    <span class="journey-num">04</span>
+                    <h2 id="ecosystem-heading">The SSA Ecosystem</h2>
+                </div>
+                <div class="org-row" id="org-row"></div>
+                <div class="org-detail-panel" id="org-detail-panel" hidden></div>
+                <button type="button" class="view-all-link" id="view-all-collaborators">View All Collaborators</button>
+                <div class="ecosystem-expand" id="ecosystem-expand" hidden></div>
+            </section>
+
+            <!-- ============================================================
+                 05 — FROM THEORY TO REAL DATA
+                 Minimal closing CTA.
+                 ============================================================ -->
+            <section class="theory-to-data-cta" id="explore-data" aria-labelledby="explore-data-heading">
+                <span class="journey-num journey-num-cta">05</span>
+                <h2 id="explore-data-heading">You've learned the basics.<br>Now explore real SSA data.</h2>
+                <a href="/portal" class="cta-btn">Explore the Data Portal &rarr;</a>
+            </section>
+        </div>
+
+    </main>
+
+
+    <footer class="site-footer">
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <span class="copyright">&copy; 2026 Aryabhatta Research Institute of Observational Sciences. All
+                    rights reserved.</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/landing.js" defer></script>
+    <script src="/js/new-to-ssa-data.js" defer></script>
+    <script src="/js/new-to-ssa-render.js" defer></script>
+
+</body>
+
+</html>
