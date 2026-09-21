@@ -96,7 +96,7 @@
 const PROJECT_LEAD = {
      id: "ece-09",
     name: "T. S. Kumar",
-    designation: "Scientist-F",
+    designation: "Engineer-F",
     role: "Project Lead — Space Situational Awareness (SSA) Programme",
     organization: "ARIES, Nainital",
     researchAreas: [
