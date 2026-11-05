@@ -44,7 +44,7 @@
         const lead = PROJECT_LEAD;
 
         const avatar = lead.photo
-            ? `<img class="member-photo leader-photo" src="${escapeHtml(lead.photo)}" alt="${escapeHtml(lead.name)}" onerror="this.outerHTML='<div class=&quot;avatar leader-avatar&quot;>${escapeHtml(getInitials(lead.name))}</div>'">`
+            ? `<img class="member-photo leader-photo" src="${escapeHtml(lead.photo)}" alt="${escapeHtml(lead.name)}">`
             : `<div class="avatar leader-avatar">${escapeHtml(getInitials(lead.name))}</div>`;
 
         const tagsHtml = (lead.researchAreas || []).length
@@ -328,15 +328,18 @@
     function cardHtml(member) {
         const meta = CATEGORY_META[member.category] || { tag: '' };
         const avatar = member.photo
-            ? `<img class="member-photo" style="width:44px;height:44px" src="${escapeHtml(member.photo)}" alt="${escapeHtml(member.name)}" onerror="this.outerHTML='<div class=&quot;avatar team-card-avatar&quot;>${escapeHtml(getInitials(member.name))}</div>'">`
+            ? `<img class="member-photo" style="width:44px;height:44px" src="${escapeHtml(member.photo)}" alt="${escapeHtml(member.name)}">`
             : `<div class="avatar team-card-avatar">${escapeHtml(getInitials(member.name))}</div>`;
 
         const orgHtml = member.organization
             ? `<div class="team-card-org">${escapeHtml(member.organization)}</div>`
             : '';
 
-        const workingOnHtml = member.workingOn
-            ? `<div class="team-card-project">Working on: ${escapeHtml(member.workingOn)}</div>`
+        const cardEmailAddress = member.email
+            ? (member.email.includes('@') ? member.email : `${member.email}@aries.res.in`)
+            : '';
+        const workingOnHtml = cardEmailAddress
+            ? `<div class="team-card-project modal-contact-row">${ICON_EMAIL}<a href="mailto:${escapeHtml(cardEmailAddress)}" onclick="event.stopPropagation()">${escapeHtml(cardEmailAddress).replace('@', '<wbr>@')}</a></div>`
             : '';
 
         return `
@@ -439,11 +442,6 @@
                 </div>`).join('')
             : `<p class="modal-empty">No current work listed yet.</p>`;
 
-        const emailAddress = member.email || '';
-        const contactHtml = emailAddress
-            ? `<div class="modal-contact-row">${ICON_EMAIL}<a href="mailto:${escapeHtml(emailAddress)}">${escapeHtml(emailAddress)}</a></div>`
-            : '';
-
         const links = member.links || {};
         const socialEntries = Object.keys(LINK_ICONS).filter((key) => links[key]);
         const socialHtml = socialEntries.length
@@ -456,7 +454,6 @@
             <div class="modal-info-rows">
                 ${infoRowsHtml}
             </div>
-            ${contactHtml}
             ${socialHtml}
             <a class="btn-view-profile" href="/member.html?id=${encodeURIComponent(member.id)}" onclick="event.stopPropagation()">
                 View Profile

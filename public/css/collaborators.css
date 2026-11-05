@@ -1,0 +1,404 @@
+/* Collaborators overview (/collaborators.html) and per-organization pages
+   (/collaborator.html?id=...). Uses the shared tokens from landing.css and
+   the same glass-panel look as the team page. */
+
+.collab-page-container .portal-intro {
+    margin-bottom: 32px;
+}
+
+.collab-page-container .portal-intro p {
+    max-width: 78ch;
+}
+
+/* ---- Overview cards ---- */
+.collab-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.collab-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: rgba(13, 20, 36, 0.55);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: 26px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s, box-shadow 0.25s;
+}
+
+.collab-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-border-glow);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.collab-card-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.collab-monogram {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 58px;
+    border-radius: var(--border-radius-md);
+    background: var(--color-accent-soft);
+    border: 1px solid var(--color-border-glow);
+    color: var(--color-accent-hover);
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.collab-monogram-lg {
+    width: 84px;
+    height: 84px;
+    font-size: 20px;
+}
+
+.collab-card-name {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 2px;
+}
+
+.collab-card-full {
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.collab-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.collab-card-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.collab-chip {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--color-accent-hover);
+    background: rgba(79, 127, 214, 0.1);
+    border: 1px solid var(--color-border-glow);
+    border-radius: 999px;
+    padding: 3px 10px;
+}
+
+.collab-card-summary {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--color-text);
+    margin: 0;
+}
+
+.collab-read-more {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-accent-hover);
+    text-decoration: none;
+    padding: 9px 16px;
+    border: 1px solid var(--color-border-glow);
+    border-radius: var(--border-radius-sm);
+    background: rgba(79, 127, 214, 0.08);
+    transition: background 0.2s, color 0.2s;
+}
+
+.collab-read-more:hover,
+.collab-read-more:focus-visible {
+    background: var(--color-accent);
+    color: #ffffff;
+}
+
+.collab-read-more svg {
+    transition: transform 0.2s;
+}
+
+.collab-read-more:hover svg {
+    transform: translateX(3px);
+}
+
+/* ---- Detail page ---- */
+/* landing.css gives every <section> 80px padding + a border (for the
+   landing page's full-width bands); these are content blocks, not bands. */
+section.collab-detail,
+section.collab-section {
+    padding: 0;
+    border-bottom: 0;
+}
+
+.collab-detail {
+    background: rgba(13, 20, 36, 0.55);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    overflow: hidden;
+}
+
+.collab-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 32px;
+    border-bottom: 1px solid var(--color-border);
+    background: rgba(7, 11, 20, 0.4);
+}
+
+.collab-detail-name {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 4px;
+}
+
+.collab-detail-full {
+    font-size: 15px;
+    color: var(--color-accent-hover);
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.collab-detail-body {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 40px;
+    padding: 32px;
+}
+
+.collab-section {
+    margin-bottom: 30px;
+}
+
+.collab-section h2 {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    padding-bottom: 10px;
+    margin: 0 0 14px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.collab-section p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--color-text);
+    margin: 0 0 12px;
+}
+
+.collab-list {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.collab-list li {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-text);
+    margin-bottom: 8px;
+}
+
+.collab-list li::marker {
+    color: var(--color-accent);
+}
+
+.collab-sources {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.collab-sources li {
+    margin-bottom: 8px;
+}
+
+.collab-sources a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--color-accent-hover);
+    text-decoration: none;
+}
+
+.collab-sources a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+.collab-side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.collab-facts {
+    background: rgba(7, 11, 20, 0.4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: 20px;
+}
+
+.collab-facts h3 {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin: 0 0 14px;
+}
+
+.collab-facts dl {
+    margin: 0;
+}
+
+.collab-facts dt {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-accent-hover);
+    margin-top: 12px;
+}
+
+.collab-facts dt:first-child {
+    margin-top: 0;
+}
+
+.collab-facts dd {
+    margin: 4px 0 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--color-text);
+}
+
+.collab-members,
+.collab-others {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.collab-members a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 8px;
+    margin: 0 -8px;
+    border-radius: var(--border-radius-sm);
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.collab-members a:hover {
+    background: var(--color-accent-soft);
+}
+
+.collab-member-photo {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1px var(--color-border-glow);
+}
+
+.collab-member-initials {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.collab-member-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.collab-member-role {
+    display: block;
+    font-size: 12px;
+    color: var(--color-text-muted);
+}
+
+.collab-others a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-accent-hover);
+    text-decoration: none;
+}
+
+.collab-others a:hover {
+    color: #ffffff;
+}
+
+.collab-muted {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+    .collab-detail-body {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 600px) {
+    .collab-detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 24px 20px;
+    }
+
+    .collab-detail-body {
+        padding: 24px 20px;
+    }
+
+    .collab-card {
+        padding: 22px 20px;
+    }
+}

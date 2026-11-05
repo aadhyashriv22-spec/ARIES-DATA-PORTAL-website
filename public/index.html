@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARIES SSA Data Portal - Explorer</title>
+    <link rel="icon" href="/assets/brand/aries-observe-favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="icon" href="/assets/brand/favicon-16.png" sizes="16x16" type="image/png">
+    <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
+    <title>ARIES Observe - Explorer</title>
     <meta name="description" content="Aryabhatta Research Institute of Observational Sciences — Authenticated Observation File Explorer">
 
     <!-- Fonts -->
@@ -15,7 +19,7 @@
         rel="stylesheet">
     
     <link rel="stylesheet" href="/css/portal.css">
-    <script src="/js/portal.js" defer></script>
+    <script src="/js/portal.js?v=4" defer></script>
 </head>
 
 <body>
@@ -54,10 +58,10 @@
     <header class="portal-header">
         <div class="header-inner">
             <div class="brand">
-                <span class="brand-logo-mark" aria-hidden="true">A</span>
+                <img class="brand-logo-mark" src="/assets/brand/aries-observe-emblem.svg" alt="" aria-hidden="true">
                 <div class="brand-text">
                     <span class="brand-name">ARIES</span>
-                    <span class="brand-subtitle">SSA Data Portal</span>
+                    <span class="brand-subtitle">Observe</span>
                 </div>
             </div>
             
@@ -90,8 +94,8 @@
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                     </span>
                     <div class="mirror-text">
-                        <span class="mirror-title">Google Drive</span>
-                        <span class="mirror-desc">Primary cloud mirror</span>
+                        <span class="mirror-title"></span>
+                        <span class="mirror-desc">Mirror 1</span>
                     </div>
                 </button>
                 <button class="mirror-btn m2" onclick="selectMirror('onedrive')" role="tab" aria-selected="false">
@@ -99,8 +103,8 @@
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                     </span>
                     <div class="mirror-text">
-                        <span class="mirror-title">OneDrive</span>
-                        <span class="mirror-desc">Secondary backup mirror</span>
+                        <span class="mirror-title"> </span>
+                        <span class="mirror-desc">Mirror 2</span>
                     </div>
                 </button>
                 <button class="mirror-btn m3" onclick="selectMirror('local')" role="tab" aria-selected="false">
@@ -108,8 +112,17 @@
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                     </span>
                     <div class="mirror-text">
-                        <span class="mirror-title">Local Repository</span>
-                        <span class="mirror-desc">High-speed local storage</span>
+                        <span class="mirror-title"></span>
+                        <span class="mirror-desc">Mirror 3</span>
+                    </div>
+                </button>
+                                <button class="mirror-btn m4" onclick="selectMirror('nas')" role="tab" aria-selected="false">
+                    <span class="mirror-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    </span>
+                    <div class="mirror-text">
+                        <span class="mirror-title"></span>
+                        <span class="mirror-desc">Mirror 4</span>
                     </div>
                 </button>
             </div>

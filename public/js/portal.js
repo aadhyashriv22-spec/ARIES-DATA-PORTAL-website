@@ -14,7 +14,8 @@ const ICONS = {
 const MIRROR_NAMES = {
     gdrive: 'Mirror 1',
     onedrive: 'Mirror 2',
-    local: 'Mirror 3'
+    local: 'Mirror 3',
+    nas:'Mirror 4'
 };
 
 function selectMirror(mirror) {
@@ -23,7 +24,7 @@ function selectMirror(mirror) {
 
     document.querySelectorAll('.mirror-btn').forEach((button) => button.classList.remove('active'));
 
-    const mirrorButtonIndex = { gdrive: 0, onedrive: 1, local: 2 };
+    const mirrorButtonIndex = { gdrive: 0, onedrive: 1, local: 2, nas: 3 };
     const selectedButton = document.querySelectorAll('.mirror-btn')[mirrorButtonIndex[mirror]];
 
     if (selectedButton) {
@@ -38,7 +39,7 @@ function loadRoot() {
     updateBreadcrumb();
 
     if (activeMirror === 'gdrive') {
-        loadFiles('/gdrive/list/root', 'gdrive');
+        loadFiles('/gdrive/list/1seCEXC_faVZpqRY-t1ghHI0nrChQCmgU', 'gdrive');
         return;
     }
 
@@ -49,6 +50,10 @@ function loadRoot() {
 
     if (activeMirror === 'local') {
         loadFiles('/local/list', 'local');
+    }
+
+    if (activeMirror === 'nas') {
+        loadFiles('/nas/list', 'nas');
     }
 }
 
@@ -115,12 +120,18 @@ function renderFiles(files, mirror) {
         }
 
         const downloadUrl = getDownloadUrl(file, mirror);
+        // Mirror 4 (NAS): the file name is a link that opens the file
+        // straight from the NAS in a new tab (the backend only renders safe
+        // types inline; anything else falls back to a download).
+        const fileLabel = mirror === 'nas'
+            ? `<a class="file-link" href="${escapeHtml(`${downloadUrl}&view=1`)}" target="_blank" rel="noopener">${escapeHtml(file.name)}</a>`
+            : file.name;
         html += `
         <div class="file-row">
             <div class="file-info">
                 ${icon}
                 <div>
-                    <div>${file.name}</div>
+                    <div>${fileLabel}</div>
                     <div class="file-size">${size}</div>
                 </div>
             </div>
@@ -182,6 +193,10 @@ function getDownloadUrl(file, mirror) {
     if (mirror === 'local') {
         return `/local/download?path=${encodeURIComponent(file.path)}`;
     }
+    
+    if (mirror === 'nas') {
+        return `/nas/download?path=${encodeURIComponent(file.path)}`;
+    }
 
     return '#';
 }
@@ -199,6 +214,10 @@ function loadCurrentFolder(idOrPath) {
 
     if (activeMirror === 'local') {
         loadFiles(`/local/list?path=${encodeURIComponent(idOrPath)}`, 'local');
+    }
+
+    if (activeMirror === 'nas') {
+        loadFiles(`/nas/list?path=${encodeURIComponent(idOrPath)}`, 'nas');
     }
 }
 

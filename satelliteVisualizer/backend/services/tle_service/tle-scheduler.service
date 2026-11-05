@@ -1,0 +1,14 @@
+[Unit]
+Description=ARIES SSA TLE Catalogue Scheduler
+After=network.target
+
+[Service]
+Type=simple
+User=user
+WorkingDirectory=/home/user/Desktop/file-portal/satelliteVisualizer/backend/services/tle_service
+ExecStart=/home/user/miniconda3/bin/python3 -u scheduler.py
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

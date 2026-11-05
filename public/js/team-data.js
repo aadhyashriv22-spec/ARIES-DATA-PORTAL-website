@@ -32,7 +32,12 @@
  * an "open to interns" note) so it gets its own PROJECT_LEAD object and
  * its own spotlight section on team.html (see renderLeadership() in
  * team.js), rather than being squeezed into the TEAM_MEMBERS card shape.
- * Set PROJECT_LEAD to null to hide the spotlight section entirely.
+ * The spotlight is currently switched off (team.html no longer has the
+ * #team-leader-root container) — he appears in the member grid instead
+ * as the "Team Guide" entry at the top of TEAM_MEMBERS, which reads its
+ * fields from this object. Keep PROJECT_LEAD defined (not null), since
+ * that grid entry depends on it. To bring the spotlight back, re-add
+ * <div id="team-leader-root"></div> above .team-layout in team.html.
  *
  * PROJECT_LEAD fields:
  *   name          - full name
@@ -165,9 +170,35 @@ const PROJECT_LEAD = {
 };
 
 const TEAM_MEMBERS = [
+    // ---- Team Guide — T. S. Kumar. Built from PROJECT_LEAD above, so
+    // his name/photo/contact/interests only need editing in one place;
+    // the remaining fields are summarized from that same profile. ----
+    {
+        id: PROJECT_LEAD.id,
+        name: PROJECT_LEAD.name,
+        designation: PROJECT_LEAD.designation,
+        category: "team_guide",
+        organization: PROJECT_LEAD.organization,
+        field: "Systems and Control Engineering",
+        workingOn: "Leading Space Situational Awareness (SSA) initiatives, focusing on optical tracking systems, instrumentation, and data processing",
+        researchArea: PROJECT_LEAD.researchAreas.join(", "),
+        photo: PROJECT_LEAD.photo,
+        email: PROJECT_LEAD.email,
+        phone: PROJECT_LEAD.phone,
+        bio: [
+            "Project Lead of the Space Situational Awareness (SSA) Programme at ARIES, Nainital, where he has worked as a Scientist/Engineer since 2004 — designing precision control systems for optical telescopes, developing CCD/CMOS-based astronomical instruments, and leading the integration, testing, and commissioning of telescope subsystems.",
+            "Ph.D. in Systems and Control Engineering from IIT Bombay. Before joining ARIES, he worked as an Engineer at Tata Motors, Pune (2002–2004), on automobile control-unit testing and robotic production-line automation."
+        ],
+        interests: PROJECT_LEAD.interests,
+        researchExperience: PROJECT_LEAD.experience.map((e) => `${e.period}: ${e.role}, ${e.org}`),
+        publications: [],
+        links: PROJECT_LEAD.links,
+        published: true
+    },
+
     // ---- Software Engineers (3) — networking work is not a separate
     // category anymore, it's just folded into this column ----
-    { id: "swe-01", name: "Vaageisha Sharma", designation: "Software Engineer", category: "software_engineer", organization: "DRDO-IRDE", field: "Software Development (AI/ML & Computer Vision)", workingOn: "Making AI & ML based pipelines for Object detection", researchArea: "Space Situational Awareness, AI/ML Detection Pipelines", photo: "/assets/team/swe-01.jpg", email: "vaageishasharma@gmail.com", bio: [
+    { id: "swe-01", name: "Vaagiesha Sharma", designation: "Software Engineer", category: "software_engineer", organization: "DRDO-IRDE", field: "Software Development (AI/ML & Computer Vision)", workingOn: "Making AI & ML based pipelines for Object detection", researchArea: "Space Situational Awareness, AI/ML Detection Pipelines", photo: "/assets/team/swe-01.jpg", email: "vaageishasharma@gmail.com", bio: [
   "Working on Space Situational Awareness (SSA) at ARIES under a DRDO-IRDE project, focusing on AI/ML-based detection pipelines.",
   "Experienced in real-time object detection and simulation frameworks for astronomical image data."], interests: ["Computational Astronomy & Space Situational Awareness"], publications: [
   {
@@ -191,12 +222,11 @@ const TEAM_MEMBERS = [
     url: null
   }
 ], links: { website: null, scholar: null, github: null, linkedin: null }, published: true },
-    { id: "swe-02", name: "Pallavi Sati", designation: "Software Engineer", category: "software_engineer", organization: "DRDO-IRDE", field: "Astrophysics and Machine Learning", workingOn: "Alert Broker Architecture for SSA", researchArea: "Resident space object (RSO) detection and space situational awareness via data-archive and alert-broker systems, alongside LSST/Rubin-era machine-learning reliability, calibration of transient classifiers and learning-to-defer for follow-up prioritization.", photo:"/assets/team/swe-02.jpg", email: "pallavisati23@gmail.com", bio: ["Astrophysicist (MSc, Data-Intensive Astrophysics, Cardiff) working across time-domain astronomy and machine learning. At ARIES, the work comprises RSO detection and space situational awareness; personal research on the reliability of ML transient classifiers for LSST-era surveys was presented at NAM 2026 Birmingham and is in preparation for an Astronomical Journal."], interests: ["Time-domain astrophysics, machine-learning reliability, classifier calibration, LSST alert brokers, and space situational awareness (RSO detection)."], publications: ["Calibration and Reliability of ZTF Transient Broker Classifiers — poster, National Astronomy Meeting (NAM) 2026; manuscript in preparation for an Astronomical Journal."], links: { website: null, scholar: null, github: null, linkedin: "https://www.linkedin.com/in/pallavi-sati-910761213/ "}, published: true },
-    { id: "swe-03", name: "Aadhya Shrivastava", designation: "Software Engineer", category: "software_engineer", organization: "BEL", field: "Software Engineering", workingOn: "Website/Software development, Pipeline automation for Satellite image processing", researchArea: "AI Applications, Data processing, Satellite data analysis", photo:"/assets/team/swe-03.jpg", email: "aadhyashriv22@gmail.com", bio: ["A Computer Science and Communication Engineering graduate working as a Project Associate at ARIES. My work focuses on automating the image processing pipeline, data analysis, and software development for space situational awareness using AI. I am particularly interested in bridging computer science with space research, contributing to real-world scientific and observational challenges."], interests: ["Remote sensing, satellite data analysis, AI in space science, data analytics"], 
+    { id: "swe-03", name: "Aadhya Shrivastava", designation: "Software Engineer", category: "software_engineer", organization: "SSA-BEL", field: "Software and Communication Engineering", workingOn: "Website/Software development, Automation and Intelligent Systems for Satellite Image Processing", researchArea: "Data processing, AI/ML, Intelligent Agents & Astronomical applications, Scientific computing, Remote sensing, IOT & Nanosensors, Antenna & Commuication Systems", photo:"/assets/team/swe-03.jpg", email: "aadhyashriv22@gmail.com", bio: ["An interdisciplinary engineer working at the intersection of Computer Science, communications and electronics. My research and development experience spans- Satellite data analysis, communication systems and antenna design, nanosensors and IoT, remote sensing, software-web development, and AI-driven applications. Currently working under the Space Situational Awareness programme at ARIES, I work on scientific software, automating the image processing pipeline for satellite data, data-driven applications and intelligent systems for space-related research. I am interested in exploring how computing, communication, sensing and emerging technologies can come together to better understand and solve problems in space and beyond."], interests: ["Remote sensing, satellite data analysis, AI in space science, data analytics, web development, software automation, IOT, Scientific computing"], 
     publications: [ {
             title: "IoT-Enabled Real-Time Fire Monitoring and Response in Urban Areas",
             journal: "ISTI",
-            
+            url: "https://isti.reapress.com/journal/article/view/33"
         },
         {
             title: "Stacking Ensemble Regression for Surrogate Modeling of Terahertz Microstrip Patch Antennas",
@@ -210,7 +240,11 @@ const TEAM_MEMBERS = [
         }], links: { website: null, scholar: null, github: null, linkedin:"https://www.linkedin.com/public-profile/settings/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_self_edit_contact_info%3BxbKG2Rz9SH%2Bx0pXiUcMiJw%3D%3D" }, published: true },
 
     // ---- Electronic Engineers (3) ----
-    { id: "ece-01", name: "Bhargavi BN", designation: "Electronics Engineer", category: "electronic_engineer", organization: "ISTRAC-ISRO", field: "Electronics and Communication engineer", workingOn: " Embedded sytstem for Schmidt telescope Control ", researchArea: "Embedded system ", photo:"/assets/team/ece-01.jpg", email: "bnbhargavi312gmail.com", bio: ["Electronics and Communication Engineer working as Project Associate I at ARIES–ISTRAC ISRO. Working on Schmidt Telescope control systems, embedded electronics, servo motor control, encoder interfacing, and hardware integration for astronomical instrumentation."], interests: ["Embedded system ,IoT,control sytstem"], researchExperience: ["Implementation of Underground Mining Robot Using Machine Learning.."], publications: [], links: { website: null, scholar: null, github: null, linkedin: "https://www.linkedin.com/in/bn-bhargavi-463257301?utm_source=share_via&utm_content=profile&utm_medium=member_android" }, published: true },
+    { id: "ece-01", name: "Bhargavi BN", designation: "Electronics Engineer", category: "electronic_engineer", organization: "ISTRAC-ISRO", field: "Electronics and Communication engineer", workingOn: " Embedded sytstem for Schmidt telescope Control ", researchArea: "Embedded system ", photo:"/assets/team/ece-01.jpg", email: "bnbhargavi31@gmail.com", bio: ["Electronics and Communication Engineer working as Project Associate I at ARIES–ISTRAC ISRO. Working on Schmidt Telescope control systems, embedded electronics, servo motor control, encoder interfacing, and hardware integration for astronomical instrumentation."], interests: ["Embedded system ,IoT,control sytstem"], researchExperience: ["Implementation of Underground Mining Robot Using Machine Learning.."], 
+    publications: [ {
+        citation: "Manasa S., Bhargavi B. N., Muktha M. K., Sagari P. Gowda, and Soujanya Chethana, “Implementation of Underground Mining Robot Using Machine Learning,” International Journal of Advanced Research in Computer and Communication Engineering (IJARCCE), Vol. 13, Issue 4, 2024.",
+        url: "https://ijarcce.com/papers/implementation-of-underground-mining-robot-using-machine-learning/"
+    }], links: { website: null, scholar: null, github: null, linkedin: "https://www.linkedin.com/in/bn-bhargavi-463257301?utm_source=share_via&utm_content=profile&utm_medium=member_android" }, published: true },
     { id: "ece-02", name: "Jatin Ghai", designation: "Electronics Engineer", category: "electronic_engineer", organization: "ISRO RESPOND PROJECT", field: "Electronics and Communication engineer", workingOn: "FPGAs and CMOS based camera sensors", researchArea: "FPGA based real time controller design for CMOS imaging", photo: "/assets/team/ece-02.jpg", email: "jatinghai539@gmail.com", bio: ["I am currently working on FPGA-based CMOS camera interfacing and image processing. My work involves receiving camera data through the Zynq FPGA, handling timing and control signals, storing image frames, and developing real-time image-processing functions."], interests: ["FPGAs,VLSI,Embedded system "], publications: [], links: { website: null, scholar: null, github: null, linkedin:"https://www.linkedin.com/in/jatin-ghai-b9a1a21b6?utm_source=share_via&utm_content=profile&utm_medium=member_android" }, published: true },
 
 
@@ -220,14 +254,19 @@ const TEAM_MEMBERS = [
     // specialization is called.
     { id: "opt-01", name: "Aneena A", designation: "Optical Physicist", category: "optical_physicist", organization: "BEL", field: "Optics", workingOn: "Optic design, simulation and optimisation using Zemax optics studio", researchArea: "Telescope Optics", photo: "/assets/team/opt-01.jpg", email: "a.aneena2000@gmail.com", bio: ["I am an M.Sc. Physics graduate currently working as a Project Associate at ARIES. My work focuses on the design, simulation, optimization, and analysis of telescopic optical systems using Zemax OpticStudio, with an emphasis on minimizing optical aberrations."], interests: ["Telescope Optics and Detectors"], publications: [], links: { website: null, scholar: null, github: null, linkedin: null }, published: true },
     { id: "sph-01", name: "Rithu Arjun", designation: "Astrophysicist", category: "space_physicist", organization: "ISTRAC-ISRO", field: "Astrophysics", workingOn: "Developement of an Automated Photomerty pipeline, Softeware development for Schmidt Telescope contro system, Hardware-Software integration through Raspberry-pi.", researchArea: "Astronomical instrumentation, photometric data reduction and calibration, telescope control software, and observatory automation for optical astronomical observations.", photo:"/assets/team/sph-01.jpeg", email: "rithuarjun64@gmail.com", bio: ["I am currently working on the design and automation of astronomical telescope domes, where I enjoy bringing together hardware, software, and engineering to support observatory operations. My work involves system integration, testing, troubleshooting, and documentation, giving me the opportunity to learn something new every day while solving real-world challenges. I'm fascinated by how technology enables astronomical observations and enjoy finding practical solutions that improve the reliability and efficiency of observatory systems. I especially enjoy working at the intersection of instrumentation, software, and automation, where every challenge is an opportunity to better understand how complex systems come together."], interests: [], researchExperience: [], publications: [], links: { website: null, scholar: null, github: null, linkedin: null }, published: true },
+    { id: "swe-02", name: "Pallavi Sati", designation: "Astrophysicist", category: "astrophysicist", organization: "DRDO-IRDE", field: "Astrophysics and Machine Learning", workingOn: "Alert Broker Architecture for SSA", researchArea: "Resident space object (RSO) detection and space situational awareness via data-archive and alert-broker systems, alongside LSST/Rubin-era machine-learning reliability, calibration of transient classifiers and learning-to-defer for follow-up prioritization.", photo:"/assets/team/swe-02.jpg", email: "pallavisati23@gmail.com", bio: ["Astrophysicist (MSc, Data-Intensive Astrophysics, Cardiff) working across time-domain astronomy and machine learning. At ARIES, the work comprises RSO detection and space situational awareness; personal research on the reliability of ML transient classifiers for LSST-era surveys was presented at NAM 2026 Birmingham and is in preparation for an Astronomical Journal."], interests: ["Time-domain astrophysics, machine-learning reliability, classifier calibration, LSST alert brokers, and space situational awareness (RSO detection)."], publications:[ {
+        citation: "Calibration and Reliability of ZTF Transient Broker Classifiers — Poster, National Astronomy Meeting (NAM) 2026, Birmingham; manuscript in preparation for The Astronomical Journal.",
+        url: "https://lsst-uk.atlassian.net/wiki/spaces/HOME/pages/5027037187/LSST+UK+at+NAM+2026"
+    }], links: { website: null, scholar: null, github: null, linkedin: "https://www.linkedin.com/in/pallavi-sati-910761213/ "}, published: true },
     
     // ---- Junior & Postgraduate Engineers — merged into one column ----
     { id: "jr-01", name: "Ashwin Maurya", designation: "Junior Engineer", category: "junior_engineer", organization: "BEL/ISTRAC", field: "Electronics engineering", workingOn: "Dome Automation Design", researchArea: "Dome Automation Design", photo: "/assets/team/jr-01.jpg", email: "ashvin0563@gmail.com", bio: ["I am working on the Dome Automation Design project, focusing on the automation and control of astronomical telescope domes. My work includes studying and integrating hardware components such as PLCs, sensors, motors, limit switches, encoders, and communication systems to achieve accurate dome rotation and shutter control. I am also involved in system design, testing, troubleshooting, and documentation to ensure safe, reliable, and efficient operation of the observatory dome."], interests: ["Satellit Tracking substaion"], publications: [], links: { website: null, scholar: null, github: null, linkedin: "https://www.linkedin.com/in/ashvin-maury-3b0302387"}, published: true },
     { id: "pg-01", name: "Suchandra Ray", designation: "Postgraduate Engineer", category: "postgraduate_engineer", organization:"ARIES" , field: "Astronomical Instrumentation", workingOn: "Methodologies for the optical tracking of high-speed RSOs(Resident Space Objects)", researchArea: "High-cadence imaging techniques", photo: null, email: "suchandra@aries.res.in", bio: ["Current work involves the high-cadence imaging apllications in the field of SSA and astronomy"], interests: ["Orbital mechanics, Satistical state estimation, Telescope operations, Fourier optics, Optical degisn"], publications: [], links: { website: null, scholar: null, github: null, linkedin: null }, published: true },
     { id: "pg-02", name: "Mahendra Shah", designation: "Postgraduate Engineer", category: "postgraduate_engineer", organization: "ARIES", field: "Astronomical Instrumentation", workingOn: "Charaterization of Detectors (EMCCD & sCMOS)", researchArea: "Adaptive Optics", photo: null, email: "mahendershah2@gmail.com", bio: ["In-house design and development of AO"], publications: [], links: { website: null, scholar: null, github: null, linkedin: "http://www.linkedin.com/in/mahender-shah-99a1b0180" }, published: true },
+    { id: "pg-03", name: "Bhaskar Sarkar", designation: "Graduate Research Assistant (M.Tech + Ph.D.)", category: "student", organization: "ARIES", field: "Astronomical Instrumentation", workingOn: "System identification and mathematical modelling of an incremental encoder", researchArea: "Automation of the telescope system for autonomous operation", photo: "/assets/team/pg-03.jpg", email: "bhaskar@aries.res.in", bio: ["M.Tech + Ph.D. student at ARIES, currently doing my project work on the title 'Automation of the Telescope System for Autonomous Operation'.", "Research experience: Electron beam deposition of Cu2O thin film using the GLAD method and its characterization."], interests: [], researchExperience: ["Electron beam deposition of Cu2O thin film using the GLAD method and its characterization."], publications: [], links: { website: null, scholar: null, github: null, linkedin: null }, published: true },
 
     // ---- Aerospace Engineer — its own column ----
-    { id: "aero-01", name: "Divanshu Chaubey", designation: "Aerospace Engineer", organization: "BEL", category: "aerospace_engineer", field: "Mechanical designing", workingOn: "Design, development, fabrication, and assembly of precision components for telescope systems, scientific sensors, observatory domes, telescope mounts, and mechatronic subsystems, including development and characterisation of flexure and thermal models.", researchArea: "Development of astronomical instrumentation and telescope mechanisms, precision mechanical design, experimental aerodynamics, gas dynamics, shock-wave interactions, shock-tube studies, numerical simulations, and wind-tunnel experiments.", photo: "/assets/team/aero-01.jpg", email: "divyanshu.aries@gmail.com", bio: ["An Aerospace Engineer working in telescope systems and precision mechanical design, with experience spanning aerospace research, propulsion, experimental testing, and product development."], interests: ["Development of astronomical instrumentation and telescope mechanisms, precision mechanical design, experimental aerodynamics, gas dynamics, shock-wave interactions, shock-tube studies, numerical simulations, and wind-tunnel experiments."], researchExperience: ["Research experience in telescope systems, experimental aerodynamics, gas dynamics, and shock-wave interactions. His work spans wind-tunnel experiments, shock-tube studies, numerical simulations, precision mechanical design, and the development of astronomical instrumentation and telescope mechanisms."], publications: [ {
+    { id: "aero-01", name: "Divanshu Chaubey", designation: "Aerospace Engineer", organization: "ISTRAC-ISRO", category: "aerospace_engineer", field: "Mechanical designing", workingOn: "Design, development, fabrication, and assembly of precision components for telescope systems, scientific sensors, observatory domes, telescope mounts, and mechatronic subsystems, including development and characterisation of flexure and thermal models.", researchArea: "Development of astronomical instrumentation and telescope mechanisms, precision mechanical design, experimental aerodynamics, gas dynamics, shock-wave interactions, shock-tube studies, numerical simulations, and wind-tunnel experiments.", photo: "/assets/team/aero-01.jpg", email: "divyanshu.aries@gmail.com", bio: ["An Aerospace Engineer working in telescope systems and precision mechanical design, with experience spanning aerospace research, propulsion, experimental testing, and product development."], interests: ["Development of astronomical instrumentation and telescope mechanisms, precision mechanical design, experimental aerodynamics, gas dynamics, shock-wave interactions, shock-tube studies, numerical simulations, and wind-tunnel experiments."], researchExperience: ["Research experience in telescope systems, experimental aerodynamics, gas dynamics, and shock-wave interactions. His work spans wind-tunnel experiments, shock-tube studies, numerical simulations, precision mechanical design, and the development of astronomical instrumentation and telescope mechanisms."], publications: [ {
     citation: "Integrated Thermodynamic and Vibration Analysis of Micro Turbines for Aerospace Applications Using MATLAB — VETOMAC, IIT Guwahati (In Process)",
     url: null
   },
@@ -251,6 +290,7 @@ const TEAM_MEMBERS = [
 // This does NOT decide which column someone appears in — see
 // COLUMN_GROUPS below for that.
 const CATEGORY_META = {
+    team_guide:            { tag: "GUIDE" },
     software_engineer:     { tag: "SWE" },
     electronic_engineer:   { tag: "ECE" },
     optical_physicist:     { tag: "OPT" },
@@ -258,6 +298,7 @@ const CATEGORY_META = {
     space_physicist:       { tag: "SPH" },   // rename if this isn't the real term
     junior_engineer:       { tag: "JR" },
     postgraduate_engineer: { tag: "PG" },
+    student:               { tag: "STU" },
     aerospace_engineer:    { tag: "AERO" },
     
 };
@@ -267,10 +308,11 @@ const CATEGORY_META = {
 // column — list more than one to merge categories into a shared column
 // (each person still shows their own individual badge from CATEGORY_META).
 const COLUMN_GROUPS = [
+    { title: "Team Guide", categories: ["team_guide"] },
     { title: "Software Engineers", categories: ["software_engineer"] },
     { title: "Electronic Engineers", categories: ["electronic_engineer"] },
     { title: "Physicists", categories: ["optical_physicist", "astrophysicist", "space_physicist"] },
-    { title: "Junior & Postgraduate Engineers", categories: ["junior_engineer", "postgraduate_engineer"] },
+    { title: "Junior & Postgraduate Engineers", categories: ["junior_engineer", "postgraduate_engineer", "student"] },
     { title: "Aerospace Engineers", categories: ["aerospace_engineer"] },
     
 ];

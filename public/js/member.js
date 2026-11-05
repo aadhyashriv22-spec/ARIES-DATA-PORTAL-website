@@ -61,19 +61,18 @@
             ? `<ul class="interest-list">${member.interests.map((i) => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`
             : `<p class="no-links">No research interests listed yet.</p>`;
 
-        const experienceHtml = (member.researchExperience || []).length
-            ? `<ul class="experience-list">${member.researchExperience.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>`
-            : `<p class="no-links">Research experience not yet added.</p>`;
-
 const publicationsHtml = (member.publications || []).length
     ? `<ol class="publication-list">${member.publications.map((p) => {
         const title = escapeHtml(p.title || p.citation || '');
         const journal = escapeHtml(p.journal || '');
         const status = escapeHtml(p.status || '');
+        const titleHtml = p.url
+            ? `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer">${title}</a>`
+            : title;
 
         return `
             <li>
-                <div class="publication-title">${title}</div>
+                <div class="publication-title">${titleHtml}</div>
                 ${journal ? `<div class="publication-journal">${journal}</div>` : ''}
                 ${status ? `<div class="publication-status">${status}</div>` : ''}
             </li>
@@ -116,10 +115,6 @@ const publicationsHtml = (member.publications || []).length
                     <div class="member-section">
                         <h2>Field &amp; Current Work</h2>
                         ${fieldWorkHtml}
-                    </div>
-                    <div class="member-section">
-                        <h2>Research Experience</h2>
-                        ${experienceHtml}
                     </div>
                     <div class="member-section">
                         <h2>Research Interest and Description</h2>

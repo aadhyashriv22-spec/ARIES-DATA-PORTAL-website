@@ -174,7 +174,14 @@
             scale = 1.0;
         }
 
-        if (!stageEnabled(13)) scale = 1.0;
+        // The mobile-only shrink above (scale 0.5, small w<768 branch) was
+        // being unconditionally wiped back to 1.0 here because it's normally
+        // gated behind the sunStage debug flag (default 9, not 13) — on
+        // phones that left the sun full-size and sitting right behind the
+        // hero heading text. Desktop/tablet still respect the gate exactly
+        // as before (no visual change there); only the mobile branch is now
+        // allowed through regardless of sunStage.
+        if (!stageEnabled(13) && w >= 768) scale = 1.0;
 
         STATE.baseScale = scale;
         STATE.sunGroup.position.set(px, py, 0);

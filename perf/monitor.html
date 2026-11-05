@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live Server Monitor</title>
+<style>
+:root {
+  color-scheme: light;
+  --surface-0: #f4f3f0; --surface-1: #fcfcfb; --border: #e2e1dc; --grid: #ecebe7;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #7a7974;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
+  --good: #1b7f3b; --warn: #a15c00; --crit: #c62828;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --surface-0: #121211; --surface-1: #1a1a19; --border: #33332f; --grid: #2a2a27;
+    --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #8e8d85;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+    --good: #5fd08a; --warn: #f0b04a; --crit: #ff7a7a;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-0: #121211; --surface-1: #1a1a19; --border: #33332f; --grid: #2a2a27;
+  --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #8e8d85;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+  --good: #5fd08a; --warn: #f0b04a; --crit: #ff7a7a;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--surface-0); color: var(--text-primary);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: space-between; }
+h1 { font-size: 22px; margin: 0; }
+h2 { font-size: 15px; margin: 0 0 4px; }
+.status { font-size: 12px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
+.dot.live { background: var(--good); animation: pulse 2s infinite; }
+.dot.down { background: var(--crit); }
+@keyframes pulse { 50% { opacity: .35; } }
+.controls { display: flex; gap: 6px; flex-wrap: wrap; }
+.controls button { background: var(--surface-1); color: var(--text-secondary); border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px 10px; cursor: pointer; font: inherit; font-size: 12px; }
+.controls button[aria-pressed="true"] { color: var(--text-primary); border-color: var(--text-secondary); font-weight: 600; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 16px 0 6px; }
+.tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.tile .lbl { color: var(--text-secondary); font-size: 12px; }
+.tile .big { font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: 2px; }
+.tile .st { font-size: 11px; font-weight: 700; letter-spacing: .03em; margin-top: 4px; }
+.st.good { color: var(--good); } .st.warn { color: var(--warn); } .st.crit { color: var(--crit); }
+.tile .sub { color: var(--text-muted); font-size: 11.5px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 12px; margin-top: 12px; }
+@media (max-width: 540px) { .grid2 { grid-template-columns: 1fr; } }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.note { color: var(--text-muted); font-size: 12px; margin: 0 0 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--text-secondary); margin: 4px 0; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.legend i { width: 14px; height: 2px; border-radius: 1px; display: inline-block; }
+.legend b { color: var(--text-primary); font-weight: 600; }
+svg { display: block; width: 100%; overflow: visible; }
+svg text { fill: var(--text-muted); font-size: 11px; }
+.tablewrap { overflow-x: auto; margin-top: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+th { color: var(--text-secondary); font-weight: 600; }
+th:first-child, td:first-child { text-align: left; }
+.tip { position: fixed; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.12); display: none; z-index: 10; min-width: 170px; }
+.tip .row { display: flex; gap: 10px; justify-content: space-between; align-items: center; }
+.tip .row i { width: 10px; height: 2px; display: inline-block; margin-right: 6px; }
+.tip .row b { font-variant-numeric: tabular-nums; }
+.tip .hd { color: var(--text-muted); margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div>
+    <h1>ARIES Observe — live server monitor</h1>
+    <span class="status"><span class="dot" id="dot"></span><span id="statustext">connecting…</span></span>
+  </div>
+  <div class="controls" id="controls">
+    <button type="button" data-win="60">1 min</button>
+    <button type="button" data-win="300" aria-pressed="true">5 min</button>
+    <button type="button" data-win="900">15 min</button>
+    <button type="button" id="pause">Pause</button>
+    <button type="button" id="theme">Theme</button>
+  </div>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="grid2">
+  <div class="card"><h2>Process CPU</h2><p class="note">100% = one full core</p><div id="c-cpu"></div></div>
+  <div class="card"><h2>Response time of each page</h2><p class="note">Live probes from this machine; gaps mean the request failed</p><div id="c-lat"></div></div>
+  <div class="card"><h2>Uplink to Cloudflare (eno2)</h2><p class="note">Traffic leaving this machine for visitors</p><div id="c-net"></div></div>
+  <div class="card"><h2>Active connections</h2><p class="note">Visualizer viewers = connections actually streaming satellite frames</p><div id="c-conn"></div></div>
+  <div class="card"><h2>Resident memory per process</h2><div id="c-rss"></div></div>
+  <div class="card"><h2>Data written per process</h2><p class="note">Socket + file writes, mostly network responses</p><div id="c-wr"></div></div>
+</div>
+
+<div class="card tablewrap"><h2>Processes right now</h2><table id="ptable"></table></div>
+</main>
+<div class="tip" id="tip"></div>
+<script>
+const PROCS = ["main-site (node :5000)", "propagation (python :8000)", "gateway (node :4000)", "cloudflared tunnel", "tle scheduler"];
+const COLORS = ["--s1", "--s2", "--s3", "--s4", "--s5"];
+const PROBES = ["landing page", "visualizer shell", "radar /visible"];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const NS = "http://www.w3.org/2000/svg";
+const tip = document.getElementById("tip");
+let data = /*__HISTORY__*/[], win = 300, paused = false;
+
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; }
+const fmt = v => v == null ? "–" : v >= 10000 ? (v / 1000).toFixed(0) + "k" : v >= 1000 ? (v / 1000).toFixed(1) + "k" : v >= 10 ? Math.round(v) + "" : (+v.toFixed(1)) + "";
+const fmtMs = v => v == null ? "failed" : v >= 1000 ? (v / 1000).toFixed(1) + " s" : Math.round(v) + " ms";
+function isNice(v) { const p = Math.pow(10, Math.floor(Math.log10(v))); return [1, 2, 2.5, 5, 10].some(f => Math.abs(v / p - f) < 1e-9); }
+function niceMax(v) { const p = Math.pow(10, Math.floor(Math.log10(v))); for (const f of [1, 2, 2.5, 5, 10]) if (f * p >= v) return f * p; return 10 * p; }
+
+function showTip(e, header, rows) {
+  tip.replaceChildren();
+  const hd = document.createElement("div"); hd.className = "hd"; hd.textContent = header; tip.appendChild(hd);
+  rows.forEach(r => {
+    const row = document.createElement("div"); row.className = "row";
+    const l = document.createElement("span"); const i = document.createElement("i"); i.style.background = r.color;
+    l.append(i, document.createTextNode(r.label));
+    const b = document.createElement("b"); b.textContent = r.value; row.append(l, b); tip.appendChild(row);
+  });
+  tip.style.display = "block";
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + tip.offsetWidth > innerWidth - 8) x = e.clientX - tip.offsetWidth - 14;
+  if (y + tip.offsetHeight > innerHeight - 8) y = e.clientY - tip.offsetHeight - 14;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+
+// series: [{name, color, get: sample => number|null}]
+function chart(id, series, unit, fmtV = v => fmt(v) + " " + unit) {
+  const host = document.getElementById(id);
+  const rows = data.filter(s => s.t >= data[data.length - 1].t - win);
+  host.replaceChildren();
+  const last = rows[rows.length - 1];
+  const lg = document.createElement("div"); lg.className = "legend";
+  series.forEach(s => {
+    const sp = document.createElement("span"); const i = document.createElement("i"); i.style.background = css(s.color);
+    const b = document.createElement("b"); b.textContent = fmtV(s.get(last));
+    sp.append(i, document.createTextNode(s.name + " "), b); lg.appendChild(sp);
+  });
+  host.appendChild(lg);
+  const W = host.clientWidth || 500, H = 200, m = { l: 46, r: 10, t: 8, b: 22 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const t1 = last.t, t0 = t1 - win;
+  const ymax = niceMax(Math.max(1, ...rows.flatMap(r => series.map(s => s.get(r) || 0))));
+  const X = t => m.l + (t - t0) / win * iw, Y = v => m.t + ih - v / ymax * ih;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": id }, host);
+  const div = [4, 5].find(n => isNice(ymax / n)) || 4;
+  for (let k = 0; k <= div; k++) {
+    const v = ymax * k / div;
+    el("line", { x1: m.l, x2: m.l + iw, y1: Y(v), y2: Y(v), stroke: css("--grid") }, svg);
+    el("text", { x: m.l - 6, y: Y(v) + 4, "text-anchor": "end" }, svg).textContent = fmt(v);
+  }
+  const step = win <= 60 ? 15 : win <= 300 ? 60 : 180;
+  for (let s = 0; s <= win; s += step) {
+    el("text", { x: X(t1 - s), y: H - 6, "text-anchor": s === 0 ? "end" : "middle" }, svg).textContent = s === 0 ? "now" : `-${s >= 60 ? s / 60 + "m" : s + "s"}`;
+  }
+  series.forEach(s => {
+    let d = "", pen = false;
+    rows.forEach(r => { const v = s.get(r); if (v == null) { pen = false; return; } d += (pen ? "L" : "M") + X(r.t).toFixed(1) + " " + Y(v).toFixed(1); pen = true; });
+    el("path", { d, fill: "none", stroke: css(s.color), "stroke-width": 2, "stroke-linejoin": "round" }, svg);
+  });
+  const cross = el("line", { y1: m.t, y2: m.t + ih, stroke: css("--text-muted"), visibility: "hidden" }, svg);
+  const hit = el("rect", { x: m.l, y: m.t, width: iw, height: ih, fill: "transparent" }, svg);
+  hit.addEventListener("pointermove", e => {
+    const r = svg.getBoundingClientRect(); const tx = t0 + ((e.clientX - r.left) * W / r.width - m.l) / iw * win;
+    let best = rows[0]; for (const row of rows) if (Math.abs(row.t - tx) < Math.abs(best.t - tx)) best = row;
+    cross.setAttribute("x1", X(best.t)); cross.setAttribute("x2", X(best.t)); cross.setAttribute("visibility", "visible");
+    showTip(e, new Date(best.t * 1000).toLocaleTimeString(), series.map(s => ({ label: s.name, value: fmtV(s.get(best)), color: css(s.color) })));
+  });
+  hit.addEventListener("pointerleave", () => { cross.setAttribute("visibility", "hidden"); tip.style.display = "none"; });
+}
+
+function level(v, warn, crit) { return v == null ? ["crit", "✕ Down"] : v >= crit ? ["crit", "▲ Critical"] : v >= warn ? ["warn", "▲ Elevated"] : ["good", "● OK"]; }
+function tiles(s) {
+  const P = s.procs, L = s.latency, up = s.nic.eno2 || {};
+  const T = [
+    ["Visualizer viewers", s.conns.ws_to_python, "", null, "tabs receiving live data"],
+    ["Site connections", s.conns.site, "", null, "open TCP on :5000"],
+    ["Uplink out", up.tx, " Mbit/s", level(up.tx, 50, 100), "eno2 transmit"],
+    ["Propagation CPU", P["propagation (python :8000)"]?.cpu, "%", level(P["propagation (python :8000)"]?.cpu, 80, 95), "one core = 100%"],
+    ["Main site CPU", P["main-site (node :5000)"]?.cpu, "%", level(P["main-site (node :5000)"]?.cpu, 60, 90), "downloads show here"],
+    ["Landing page", L["landing page"], "", level(L["landing page"], 200, 1000), "response time"],
+    ["Radar /visible", L["radar /visible"], "", level(L["radar /visible"], 1000, 3000), "response time"],
+    ["Host CPU", s.host.cpu, "%", level(s.host.cpu, 60, 85), `busiest core ${fmt(s.host.max_core)}%`],
+  ];
+  const host = document.getElementById("tiles"); host.replaceChildren();
+  T.forEach(([lbl, v, unit, st, sub]) => {
+    const d = document.createElement("div"); d.className = "tile";
+    const a = document.createElement("div"); a.className = "lbl"; a.textContent = lbl;
+    const b = document.createElement("div"); b.className = "big";
+    b.textContent = (lbl === "Landing page" || lbl === "Radar /visible") ? fmtMs(v) : v == null ? "–" : fmt(v) + unit;
+    d.append(a, b);
+    if (st) { const c = document.createElement("div"); c.className = "st " + st[0]; c.textContent = st[1]; d.appendChild(c); }
+    const e = document.createElement("div"); e.className = "sub"; e.textContent = sub; d.appendChild(e);
+    host.appendChild(d);
+  });
+}
+
+function ptable(s) {
+  const t = document.getElementById("ptable"); t.replaceChildren();
+  const cols = ["Process", "PID", "CPU %", "Memory MB", "Threads", "FDs", "TCP conns", "Write Mbit/s"];
+  const h = t.insertRow(); cols.forEach(c => { const th = document.createElement("th"); th.textContent = c; h.appendChild(th); });
+  PROCS.forEach(n => {
+    const p = s.procs[n]; if (!p) return;
+    const r = t.insertRow();
+    [n, String(p.pid), p.alive ? fmt(p.cpu) : "not running", p.rss, p.threads, p.fds, p.tcp, p.write_mbps]
+      .forEach(v => r.insertCell().textContent = v == null ? "–" : String(typeof v === "number" ? fmt(v) : v));
+  });
+}
+
+function render() {
+  if (!data.length) return;
+  const s = data[data.length - 1];
+  tiles(s); ptable(s);
+  const main4 = PROCS.slice(0, 4);
+  const pick = key => main4.map((n, i) => ({ name: n, color: COLORS[i], get: r => r.procs[n]?.[key] ?? null }));
+  chart("c-cpu", pick("cpu"), "%");
+  chart("c-lat", PROBES.map((n, i) => ({ name: n, color: COLORS[i], get: r => r.latency[n] })), "ms", fmtMs);
+  chart("c-net", [{ name: "transmit", color: "--s1", get: r => r.nic.eno2?.tx ?? null },
+                  { name: "receive", color: "--s2", get: r => r.nic.eno2?.rx ?? null }], "Mbit/s");
+  chart("c-conn", [{ name: "visualizer viewers", color: "--s1", get: r => r.conns.ws_to_python },
+                   { name: "site connections", color: "--s2", get: r => r.conns.site }], "");
+  chart("c-rss", pick("rss"), "MB");
+  chart("c-wr", pick("write_mbps"), "Mbit/s");
+}
+
+function connect() {
+  const dot = document.getElementById("dot"), st = document.getElementById("statustext");
+  const es = new EventSource("/events");
+  es.addEventListener("history", e => { data = JSON.parse(e.data); render(); });
+  es.onmessage = e => {
+    data.push(JSON.parse(e.data));
+    const cutoff = data[data.length - 1].t - 900; while (data.length && data[0].t < cutoff) data.shift();
+    dot.className = "dot live"; st.textContent = "live · updated " + new Date().toLocaleTimeString();
+    if (!paused) render();
+  };
+  es.onerror = () => { dot.className = "dot down"; st.textContent = "disconnected — is perf/monitor.py running? retrying…"; };
+}
+
+document.querySelectorAll("[data-win]").forEach(b => b.addEventListener("click", () => {
+  win = +b.dataset.win; document.querySelectorAll("[data-win]").forEach(x => x.setAttribute("aria-pressed", x === b)); render();
+}));
+document.getElementById("pause").addEventListener("click", e => {
+  paused = !paused; e.target.textContent = paused ? "Resume" : "Pause"; e.target.setAttribute("aria-pressed", paused); if (!paused) render();
+});
+document.getElementById("theme").addEventListener("click", () => {
+  const r = document.documentElement;
+  const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark"; render();
+});
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(render, 150); });
+render();
+addEventListener("load", () => setTimeout(connect, 0));
+</script>
+</body>
+</html>

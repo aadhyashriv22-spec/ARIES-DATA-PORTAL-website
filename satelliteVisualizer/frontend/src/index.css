@@ -1,0 +1,313 @@
+:root {
+  /* Design tokens for the visualizer's own UI chrome (panels, inputs,
+     badges) — aliased to the ARIES-SSA site's real design tokens
+     (defined in /css/landing.css, loaded on this page — see index.html)
+     rather than duplicating literal color/font values, so the visualizer
+     automatically stays visually consistent with the rest of the site.
+     Fallback values (after the comma) keep this page non-broken in the
+     rare case landing.css isn't loaded (e.g. a standalone dev checkout). */
+  --sv-bg: var(--color-bg, #050811);
+  --sv-panel-bg: var(--color-navy-panel, rgba(13, 20, 36, 0.65));
+  --sv-panel-border: var(--color-border, rgba(255, 255, 255, 0.06));
+  --sv-panel-blur: 14px;
+  --sv-text: var(--color-text, #e8ebf3);
+  --sv-text-muted: var(--color-text-muted, #95a3ba);
+  --sv-accent: var(--color-accent, #4f7fd6);
+  --sv-accent-soft: var(--color-accent-soft, rgba(79, 127, 214, 0.12));
+  --sv-radius-sm: var(--border-radius-sm, 6px);
+  --sv-radius-md: var(--border-radius-md, 12px);
+  --sv-radius-lg: var(--border-radius-lg, 20px);
+  --sv-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+
+  /* Orbit-regime colors are deliberately NOT tied to the site palette —
+     they're a functional encoding (LEO/MEO/GEO/HEO), shared between the
+     globe and radar view so the same satellite reads the same way on
+     both pages, and need to stay visually distinct from each other and
+     from the site's own accent color. */
+  --sv-leo: #22d3ee;
+  --sv-meo: #ffd60a;
+  --sv-geo: #ff9f1c;
+  --sv-heo: #b388ff;
+
+  --sv-font: var(--font-body, "Inter", "Segoe UI", -apple-system, sans-serif);
+  --sv-font-heading: var(--font-heading, "Space Grotesk", "Segoe UI", sans-serif);
+  --sv-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  /* Layout: the visualizer is mounted below the site's fixed header and
+     above a slim footer strip (see SiteHeader.jsx / VisualizerFooter.jsx)
+     instead of using the whole viewport, now that it's a section of the
+     site rather than a standalone app. */
+  --visualizer-footer-height: 32px;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--sv-bg);
+  color: var(--sv-text);
+  font-family: var(--sv-font);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.cesium-viewer,
+.cesium-widget,
+.cesium-viewer canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ---------------- Shared glass panel ---------------- */
+.sv-panel {
+  background: var(--sv-panel-bg);
+  border: 1px solid var(--sv-panel-border);
+  border-radius: var(--sv-radius-md);
+  backdrop-filter: blur(var(--sv-panel-blur));
+  -webkit-backdrop-filter: blur(var(--sv-panel-blur));
+  box-shadow: var(--sv-shadow);
+  color: var(--sv-text);
+}
+
+/* ---------------- Orbit badges ---------------- */
+.sv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sv-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.sv-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  flex-shrink: 0;
+}
+
+.sv-badge-leo { color: var(--sv-leo); }
+.sv-badge-meo { color: var(--sv-meo); }
+.sv-badge-geo { color: var(--sv-geo); }
+.sv-badge-heo { color: var(--sv-heo); }
+
+/* Default-hidden; shown/positioned imperatively via direct DOM writes
+   (see GlobeViewer.jsx) so cursor tracking never triggers a React
+   re-render or fights with React's own style reconciliation. */
+.sv-tooltip {
+  display: none;
+}
+
+/* ---------------- Hoverable rows (sidebar, radar list) ---------------- */
+.sv-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.sv-row:hover,
+.sv-row.sv-row-selected {
+  background-color: var(--sv-accent-soft);
+}
+
+/* ---------------- Fade-in for newly appearing elements ---------------- */
+@keyframes sv-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.sv-fade-in {
+  animation: sv-fade-in 0.6s ease forwards;
+}
+
+@keyframes sv-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.sv-pulse {
+  animation: sv-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sv-fade-in,
+  .sv-pulse {
+    animation: none;
+  }
+}
+
+/* ---------------- Scrollbars (webkit) — subtle, matches the dark theme ---------------- */
+.sv-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.sv-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+.sv-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ==========================================================================
+   Responsive breakpoints (used consistently across both pages, in JS via
+   the same numeric values and in CSS via the media queries below):
+     mobile  <= 600px
+     tablet  601px – 900px
+     laptop  901px – 1280px
+     desktop > 1280px
+   ========================================================================== */
+
+/* ---------------- Interactive controls (shared polish) ---------------- */
+.sv-input,
+.sv-select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--sv-radius-sm);
+  border: 1px solid var(--sv-panel-border);
+  background: rgba(4, 10, 20, 0.6);
+  color: var(--sv-accent);
+  font-family: var(--sv-font-mono);
+  font-size: 13px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.sv-select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: auto;
+}
+
+.sv-input:hover,
+.sv-select:hover {
+  border-color: rgba(34, 211, 238, 0.35);
+}
+
+.sv-input:focus,
+.sv-select:focus {
+  outline: none;
+  border-color: var(--sv-accent);
+  box-shadow: 0 0 0 3px var(--sv-accent-soft);
+  background: rgba(4, 10, 20, 0.8);
+}
+
+.sv-btn {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid rgba(34, 211, 238, 0.4);
+  border-radius: var(--sv-radius-sm);
+  color: var(--sv-text);
+  font-family: var(--sv-font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+}
+
+.sv-btn:hover {
+  background: var(--sv-accent-soft);
+  border-color: var(--sv-accent);
+}
+
+.sv-btn:active {
+  transform: scale(0.97);
+}
+
+.sv-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid var(--sv-panel-border);
+  border-radius: var(--sv-radius-sm);
+  color: var(--sv-text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.sv-icon-btn:hover {
+  color: var(--sv-text);
+  background: var(--sv-accent-soft);
+  border-color: var(--sv-accent);
+}
+
+/* ---------------- Floating panels that become bottom sheets on mobile --------- */
+.sv-floating-panel {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* Applied to the wrapper of a panel that should dock to the bottom of the
+   screen as a sheet on phones instead of floating as a small card —
+   avoids overlap with other floating controls on narrow screens. */
+@media (max-width: 600px) {
+  .sv-mobile-bottom-sheet {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 70vh;
+    overflow-y: auto;
+    z-index: 40;
+  }
+
+  .sv-mobile-bottom-sheet .sv-panel,
+  .sv-mobile-bottom-sheet.sv-panel {
+    /* !important because SatelliteInfoPanel/SideBar set a fixed pixel
+       width inline, which otherwise beats a plain (non-important)
+       stylesheet rule regardless of specificity. */
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: var(--sv-radius-lg) var(--sv-radius-lg) 0 0;
+    border-bottom: none;
+  }
+
+  .sv-mobile-hide {
+    display: none !important;
+  }
+}
+
+/* Floating action button — used for the mobile drawer/sheet toggles. */
+.sv-fab {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--sv-panel-border);
+  background: var(--sv-panel-bg);
+  backdrop-filter: blur(var(--sv-panel-blur));
+  -webkit-backdrop-filter: blur(var(--sv-panel-blur));
+  color: var(--sv-text);
+  font-family: var(--sv-font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: var(--sv-shadow);
+  z-index: 45;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.sv-fab:hover {
+  transform: translateY(-1px);
+  background: rgba(15, 25, 42, 0.75);
+}
+
+.sv-fab:active {
+  transform: scale(0.97);
+}

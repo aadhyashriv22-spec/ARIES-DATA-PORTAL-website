@@ -1,0 +1,14 @@
+[Unit]
+Description=ARIES SSA Satellite Propagation Service (FastAPI)
+After=network.target
+
+[Service]
+Type=simple
+User=user
+WorkingDirectory=/home/user/Desktop/file-portal/satelliteVisualizer/backend
+ExecStart=/home/user/miniconda3/envs/ssa/bin/python3 -u -m uvicorn propagation_service.service:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

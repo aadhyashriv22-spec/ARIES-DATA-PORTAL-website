@@ -415,15 +415,6 @@ body {
         font-size: 26px !important;
     }
 
-    .demo-intro-audience-buttons {
-        flex-direction: row;
-    }
-
-    .demo-intro-audience-buttons .audience-select-btn {
-        flex: 1;
-        justify-content: center;
-    }
-
     .demo-orbit-canvas {
         height: 320px;
     }

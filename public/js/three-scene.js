@@ -891,7 +891,18 @@
                     orbitRadius: displayRadius,
                     angularVelocityReal: physics.angularVelocityRealRadPerSec,
                     angle: initialAngle,
-                    pulse: Math.random() * 10
+                    pulse: Math.random() * 10,
+                    // Sunlit-color materials that should darken when the
+                    // satellite passes through Earth's shadow (see the
+                    // eclipse check in the animate() satellite loop) — the
+                    // navLight is deliberately excluded since it's a
+                    // self-powered beacon, not a sunlit surface.
+                    eclipseMaterials: [
+                        { mat: busMat, litColor: busMat.color.clone() },
+                        { mat: panelMat, litColor: panelMat.color.clone() },
+                        { mat: dishMat, litColor: dishMat.color.clone() }
+                    ],
+                    eclipseFactor: 0
                 });
             }
 
@@ -1595,6 +1606,20 @@
         // tilt automatically, so no manual per-frame rotation math is
         // needed here (unlike the old radiusX/radiusY/angleZ/angleY
         // approach this replaced).
+        // Earth-shadow (eclipse) direction + center, computed once per
+        // frame and reused for every satellite below rather than per-
+        // satellite — dirLight is a direct child of the scene (not
+        // earthGroup), so its position is already a stable world-space
+        // direction, same one the atmosphere shader uses for its own
+        // day/night terminator (see sunDir in buildEarth()).
+        const eclipseSunDir = STATE.lights.dirLight
+            ? STATE.lights.dirLight.position.clone().normalize()
+            : null;
+        const eclipseEarthCenter = new THREE.Vector3();
+        if (STATE.earthGroup) STATE.earthGroup.getWorldPosition(eclipseEarthCenter);
+        const eclipseSatWorldPos = new THREE.Vector3();
+        const eclipseRelPos = new THREE.Vector3();
+
         STATE.satellites.forEach((sat) => {
             sat.angle += sat.angularVelocityReal * simulatedDeltaSeconds * motionSpeed;
             sat.group.position.set(
@@ -1607,6 +1632,38 @@
             if (sat.navLight) {
                 sat.pulse += 0.05 * motionSpeed; // Slower light pulse frequency
                 sat.navLight.visible = Math.sin(sat.pulse * 1.5) > 0;
+            }
+
+            // Earth-shadow eclipse: a satellite is in shadow when it's on
+            // the night side of Earth's center (relative to the sun
+            // direction) AND within Earth's solid radius of the Earth-sun
+            // axis — i.e. actually geometrically behind the globe, not
+            // just anywhere on the dark half of its orbit.
+            if (eclipseSunDir && STATE.earthGroup && sat.eclipseMaterials) {
+                sat.group.getWorldPosition(eclipseSatWorldPos);
+                eclipseRelPos.subVectors(eclipseSatWorldPos, eclipseEarthCenter);
+                const along = eclipseRelPos.dot(eclipseSunDir);
+                let eclipsed = false;
+                if (along < 0) {
+                    const perpDistSq = eclipseRelPos.lengthSq() - along * along;
+                    eclipsed = perpDistSq < STATE.sphereRadius * STATE.sphereRadius;
+                }
+
+                // Ease toward the target instead of snapping, so satellites
+                // fade through the shadow's edge rather than popping — kept
+                // gentle enough to still read as a fairly crisp eclipse at
+                // this orbital scale.
+                const target = eclipsed ? 1 : 0;
+                sat.eclipseFactor += (target - sat.eclipseFactor) * 0.08;
+                if (Math.abs(target - sat.eclipseFactor) < 0.01) sat.eclipseFactor = target;
+
+                // Dimmed rather than fully black — a shadowed satellite is
+                // still very faintly visible (Earthshine / the scene's own
+                // ambient light), not an invisible cutout.
+                const brightness = 1 - sat.eclipseFactor * 0.85;
+                sat.eclipseMaterials.forEach(({ mat, litColor }) => {
+                    mat.color.copy(litColor).multiplyScalar(brightness);
+                });
             }
         });
 

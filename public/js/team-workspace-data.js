@@ -30,25 +30,31 @@ const TEAM_CONFERENCES = [
     }
 ];
 
-// 02 — Technical PPTs. The FPGA one is real — migrated from
-// demonstration.html's old Tutorials tab, file already saved. The other
-// two are placeholders for topics the team may add later.
+// 02 — Technical PPTs. All 4 are real, saved under public/assets/Documents/.
 const TEAM_PPTS = [
     {
         title: 'FPGA-Based Controller Design for CMOS Camera Sensors',
         meta: 'Jatin Ghai \u00b7 ARIES SSA Team \u00b7 12 slides',
-        fileUrl: '/assets/documents/fpga-cmos-controller-design.pptx',
+        fileUrl: '/assets/Documents/FPGA_based_controller_design_forCMos.pptx',
         isPlaceholder: false
     },
     {
-        title: 'Orbit Determination Software Pipeline — Overview',
-        meta: 'PPT \u00b7 Internal',
-        isPlaceholder: true
+        title: 'Optical SSA Correlation Pipeline',
+        meta: 'ARIES SSA Team \u00b7 11 slides',
+        fileUrl: '/assets/Documents/optical-ssa-correlation-pipeline.pptx',
+        isPlaceholder: false
     },
     {
-        title: 'CCD/CMOS Sensor Calibration Techniques',
-        meta: 'PPT \u00b7 Internal',
-        isPlaceholder: true
+        title: 'CCD Calibration & Photometric Techniques',
+        meta: 'ARIES SSA Team \u00b7 14 slides',
+        fileUrl: '/assets/Documents/ccd-calibration-photometry.pptx',
+        isPlaceholder: false
+    },
+    {
+        title: 'Satellite Trajectory Determination',
+        meta: 'ARIES SSA Team \u00b7 38 slides',
+        fileUrl: '/assets/Documents/satellite-trajectory-determination.pptx',
+        isPlaceholder: false
     }
 ];
 

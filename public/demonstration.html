@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Optical Tracking Demonstration — ARIES SSA Data Portal</title>
+    <link rel="icon" href="/assets/brand/aries-observe-favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="icon" href="/assets/brand/favicon-16.png" sizes="16x16" type="image/png">
+    <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
+    <title>Interactive Optical Tracking Demonstration — ARIES Observe</title>
     <meta name="description" content="Educational WebGL simulation of optical telescope tracking of a resident space object">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -123,28 +127,32 @@
                     <span class="hamburger-line"></span>
                 </button>
                 <div class="brand">
-                    <span class="brand-logo-mark" aria-hidden="true">A</span>
+                    <img class="brand-logo-mark" src="/assets/brand/aries-observe-emblem.svg" alt="" aria-hidden="true">
                     <div class="brand-text">
                         <span class="brand-name">ARIES</span>
-                        <span class="brand-subtitle">SSA Data Portal</span>
+                        <span class="brand-subtitle">Observe</span>
                     </div>
                 </div>
             </div>
 
-            <nav class="desktop-nav" aria-label="Desktop Primary">
-                <ul>
-                    <li><a href="/landing.html#main-content">Home</a></li>
-                    <li><a href="/landing.html#about">About</a></li>
-                    <li><a href="/demonstration.html" class="active" aria-current="page">Demonstration</a></li>
-                    <li><a href="/team.html">Team</a></li>
-                    <li><a href="/landing.html#updates">Updates</a></li>
-                    <li><a href="/landing.html#access">Data Access</a></li>
-                    <li><a href="/landing.html#contact">Contact</a></li>
-                </ul>
-            </nav>
+            <div class="header-menu">
+                <nav class="desktop-nav" aria-label="Desktop Primary">
+                    <ul>
+                        <li><a href="/landing.html#main-content">Home</a></li>
+                        <li><a href="/landing.html#about">About</a></li>
+                        <li><a href="/demonstration.html" class="active" aria-current="page">Demonstration</a></li>
+                        <li><a href="/team.html">Team</a></li>
+                        <li><a href="/collaborators.html">Collaborators</a></li>
+                        <li><a href="/visualizer">Satellite Visualizer</a></li>
+                        <li><a href="/landing.html#updates">Updates</a></li>
+                        <li><a href="/landing.html#access">Data Access</a></li>
+                        <li><a href="/landing.html#contact">Contact</a></li>
+                    </ul>
+                </nav>
 
-            <div class="header-actions">
-                <a class="btn-portal-access" href="/portal">Access Portal</a>
+                <div class="header-actions">
+                    <a class="btn-portal-access" href="/portal">Access Portal</a>
+                </div>
             </div>
         </div>
     </header>
@@ -154,9 +162,9 @@
     <nav id="nav-drawer" class="nav-drawer" aria-label="Main Navigation Drawer" aria-hidden="true">
         <div class="drawer-header">
             <div class="drawer-brand">
-                <span class="brand-logo-mark" aria-hidden="true">A</span>
+                <img class="brand-logo-mark" src="/assets/brand/aries-observe-emblem.svg" alt="" aria-hidden="true">
                 <div>
-                    <h3>ARIES SSA Portal</h3>
+                    <h3>ARIES Observe</h3>
                     <p>Observational Data Repository</p>
                 </div>
             </div>
@@ -186,6 +194,7 @@
                     <h5>Team &amp; Demonstration</h5>
                     <ul>
                         <li><a href="/team.html">Project Members</a></li>
+                        <li><a href="/collaborators.html">Collaborators</a></li>
                         <li><a href="/demonstration.html">Optical Tracking Demo</a></li>
                         <li><a href="/new-to-ssa.html">New to SSA?</a></li>
                         <li><a href="/team-workspace.html">Team Workspace</a></li>
@@ -195,6 +204,7 @@
                 <div class="drawer-group">
                     <h5>Data Repository</h5>
                     <ul>
+                        <li><a href="/visualizer">Satellite Visualizer</a></li>
                         <li><a href="/portal">Optical Tracking Data</a></li>
                         <li><a href="/portal">Satellite Observations</a></li>
                         <li><a href="/portal">Downloads</a></li>
@@ -217,6 +227,19 @@
     </nav>
 
     <main id="main-content" style="padding-top: var(--header-height, 80px);">
+
+        <div class="under-construction-wrap">
+            <div class="under-construction-banner" role="status">
+                <span class="under-construction-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </span>
+                <p class="under-construction-text">Under Construction</p>
+            </div>
+        </div>
 
         <!-- Demonstration page — WebGL telescope+satellite optical-tracking
              scene (see telescope-scene.js), followed by a two-button

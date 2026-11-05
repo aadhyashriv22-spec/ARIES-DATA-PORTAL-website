@@ -25,8 +25,13 @@ body {
    .member-profile-panel — it's a CV-style spotlight for whoever leads
    the project (PROJECT_LEAD in team-data.js), shown directly below the
    intro + Current Projects row, above the team roster. */
+/* padding/border reset: landing.css gives every <section> 80px of
+   vertical padding plus a divider, which left big empty bands above and
+   below this spotlight. */
 .leader-section-wrap {
-    margin-bottom: 32px;
+    padding: 0;
+    border-bottom: none;
+    margin-bottom: 36px;
 }
 
 .leader-eyebrow {
@@ -364,6 +369,14 @@ body {
     margin-bottom: 32px;
 }
 
+.team-main-col .portal-intro h1 {
+    font-size: 32px;
+}
+
+.team-main-col .portal-intro p {
+    font-size: 16px;
+}
+
 /* ---- Current Projects section ---- */
 .team-projects-col {
     /* No margin-bottom needed — this column's height is independent of
@@ -497,7 +510,7 @@ body {
    while still fitting 3 per row. */
 .team-layout {
     display: grid;
-    grid-template-columns: 150px 1fr;
+    grid-template-columns: 172px 1fr;
     gap: 20px;
     align-items: start;
 }
@@ -544,6 +557,7 @@ body {
     font-family: var(--font-body);
     font-size: 12.5px;
     font-weight: 500;
+    line-height: 1.35;
     color: var(--color-text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -590,10 +604,13 @@ body {
        per row. */
     grid-template-columns: repeat(auto-fill, minmax(187px, 1fr));
     gap: 18px;
+    align-items: stretch;
 }
 
 .team-card {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
     background: rgba(13, 20, 36, 0.55);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-md);
@@ -627,7 +644,22 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+}
+
+.team-card-top > div {
+    min-width: 0;
+}
+
+.team-card-top .member-photo,
+.team-card-avatar {
+    flex-shrink: 0;
+}
+
+/* .class-tag is inline-block; in the flex-column card keep it hugging
+   its text instead of stretching full width */
+.team-card > .class-tag {
+    align-self: flex-start;
 }
 
 /* Matches the 44px photo size set inline in team.js's cardHtml() — this
@@ -922,9 +954,16 @@ body {
 .team-card-project {
     font-size: 12px;
     color: var(--color-text-muted);
-    margin-top: 14px;
+    margin-top: auto;
     padding-top: 12px;
     border-top: 1px solid var(--color-border);
+    min-width: 0;
+}
+
+/* Long email addresses wrap inside the card instead of overflowing it */
+.team-card-project a {
+    min-width: 0;
+    overflow-wrap: break-word;
 }
 
 /* "Spectral class" badge — a small nod to stellar classification, since
@@ -948,6 +987,7 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
+    margin-top: 10px;
     font-size: 12px;
     font-weight: 600;
     color: var(--color-accent-hover);

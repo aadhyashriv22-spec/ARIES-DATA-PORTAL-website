@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Network Load Report</title>
+<style>
+:root {
+  color-scheme: light;
+  --surface-0: #f4f3f0; --surface-1: #fcfcfb; --border: #e2e1dc; --grid: #ecebe7;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #7a7974;
+  --band: rgba(0,0,0,0.035); --band-label: #7a7974;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
+  --seq-lo: #eef4fc; --seq-hi: #0d366b;
+  --crit: #c62828; --warn: #a15c00; --good: #1b7f3b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --surface-0: #121211; --surface-1: #1a1a19; --border: #33332f; --grid: #2a2a27;
+    --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #8e8d85;
+    --band: rgba(255,255,255,0.04); --band-label: #8e8d85;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+    --seq-lo: #1e2633; --seq-hi: #86b6ef;
+    --crit: #ff7a7a; --warn: #f0b04a; --good: #5fd08a;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-0: #121211; --surface-1: #1a1a19; --border: #33332f; --grid: #2a2a27;
+  --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #8e8d85;
+  --band: rgba(255,255,255,0.04); --band-label: #8e8d85;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+  --seq-lo: #1e2633; --seq-hi: #86b6ef;
+  --crit: #ff7a7a; --warn: #f0b04a; --good: #5fd08a;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--surface-0); color: var(--text-primary);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 18px; margin: 40px 0 6px; }
+h3 { font-size: 14px; margin: 0 0 2px; }
+p.lede { color: var(--text-secondary); margin: 0 0 20px; max-width: 760px; }
+.meta { color: var(--text-muted); font-size: 12px; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-top: 12px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 16px; }
+.tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.tile .big { font-size: 28px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.tile .lbl { color: var(--text-primary); font-size: 13px; margin-top: 2px; }
+.tile .sub { color: var(--text-muted); font-size: 12px; margin-top: 6px; }
+.note { color: var(--text-secondary); font-size: 13px; margin: 4px 0 0; max-width: 820px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 12px; }
+@media (max-width: 520px) { .grid2 { grid-template-columns: 1fr; } }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+th { color: var(--text-secondary); font-weight: 600; white-space: normal; vertical-align: bottom; }
+th:first-child, td:first-child { text-align: left; }
+#proc td:nth-child(2), #proc th:nth-child(2) { text-align: left; }
+td.heat { text-align: center; font-weight: 600; border: 2px solid var(--surface-1); border-radius: 4px; min-width: 76px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--text-secondary); margin: 6px 0 2px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 2px; border-radius: 1px; display: inline-block; }
+svg { display: block; width: 100%; overflow: visible; }
+svg text { fill: var(--text-muted); font-size: 11px; }
+.tip { position: fixed; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.12); display: none; z-index: 10; min-width: 160px; }
+.tip .row { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.tip .row b { font-variant-numeric: tabular-nums; }
+.tip .row i { width: 10px; height: 2px; display: inline-block; margin-right: 6px; }
+.tip .hd { color: var(--text-muted); margin-bottom: 4px; }
+ol.findings { padding-left: 20px; margin: 8px 0 0; }
+ol.findings li { margin: 0 0 14px; }
+ol.findings .sev { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin-right: 6px; }
+.sev.crit { color: var(--crit); } .sev.warn { color: var(--warn); } .sev.good { color: var(--good); }
+code { font-size: 12px; background: var(--grid); padding: 1px 5px; border-radius: 4px; }
+.themebtn { float: right; background: var(--surface-1); color: var(--text-secondary); border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px 10px; cursor: pointer; font: inherit; font-size: 12px; }
+details summary { cursor: pointer; color: var(--text-secondary); font-size: 13px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<main>
+<button class="themebtn" id="themebtn" type="button">Toggle theme</button>
+<h1>ARIES Observe — network &amp; resource load test</h1>
+<div class="meta">Run __GENERATED__ · local stack (main site :5000 → gateway :4000 → propagation :8000) plus Cloudflare tunnel · internal report, not part of the website</div>
+<p class="lede" style="margin-top:14px">Each phase ran simulated visitors against the live servers while small probe requests measured how responsive every page stayed, and a sampler recorded CPU, memory, threads, sockets and network for every server process twice a second.</p>
+
+<div class="tiles"><!--__TILES__--></div>
+
+<h2>What's slowing things down</h2>
+<div class="card">
+<ol class="findings">
+  <li><span class="sev crit">Critical</span><b>The visualizer WebSocket sends the entire satellite catalogue (~10 MB of JSON) to every viewer about once a second.</b>
+    That is ~45 Mbit/s per open visualizer tab, and every byte has to go up through the Cloudflare tunnel uncompressed (Cloudflare does not compress WebSocket frames). One viewer plus one portal download already pushed the uplink to ~110 Mbit/s and made the public landing page ~8× slower. This is the main reason the visualizer and the Access Portal hurt each other.
+    <div class="note">Fix: send a compact binary/quantised frame (positions only, Float32 lat/lon/alt ≈ 400 KB for 33k sats) and send static metadata (name, NORAD id, orbit type) once on connect; enable <code>permessage-deflate</code>; lower the frame rate to what the globe actually needs (Cesium can interpolate between 2–5 s updates).</div></li>
+  <li><span class="sev crit">Critical</span><b>The radar page's <code>/passes</code> call is very expensive and blocks the whole propagation service.</b>
+    It runs ~2 million SGP4 steps in pure Python (≈1,500 candidates × 1,440 minutes) and takes ~6 s alone, 15–28 s with three radar tabs open. Because it runs in a thread inside the same Python process, it holds the GIL and starves everything else: <code>/visible</code> jumped from ~0.4 s to ~25 s and new visualizer connections waited 7–15 s for their first frame.
+    <div class="note">Fix: cache passes per observer (they barely change in 10 s — recompute every few minutes), call it once on page load instead of every 10 s, vectorise with <code>sgp4</code>'s <code>SatrecArray</code>/NumPy, and run it in a separate worker process so the GIL is never shared with live data.</div></li>
+  <li><span class="sev crit">Critical</span><b>The propagation service is already at ~90–110% CPU with no visitors.</b>
+    It re-propagates all ~33k satellites every second in Python on a single core while 51 other cores sit idle. Every request (WebSocket, <code>/visible</code>, <code>/passes</code>) queues behind that loop, which is why <code>/visible</code> takes 0.4–0.9 s even when idle.
+    <div class="note">Fix: vectorised propagation with <code>SatrecArray.sgp4()</code> (typically 20–50× faster), pre-serialise the JSON frame once per tick instead of per client, and keep <code>/visible</code> as a NumPy mask over the same arrays.</div></li>
+  <li><span class="sev warn">High</span><b>Radar polls <code>/visible</code> every second and gets ~430 KB of JSON each time.</b>
+    The gateway caches it for only 2 s per exact lat/lon. The radar only needs name, az, el and orbit type for the ~1,000 visible satellites.
+    <div class="note">Fix: return a trimmed payload (≈10× smaller), poll every 2–5 s, and stop polling when the tab is hidden (<code>document.visibilityState</code>).</div></li>
+  <li><span class="sev warn">High</span><b>Portal downloads have no bandwidth limit and share the same uplink.</b>
+    Locally one 1.6 GB FITS download streams at ~1.4 Gbit/s and pins the main Node process at ~200% CPU. Through the tunnel a single download takes most of the available uplink, so pages and visualizer frames queue behind it.
+    <div class="note">Fix: throttle <code>/local/download</code> and <code>/nas/download</code> per connection (e.g. a token-bucket stream), cap concurrent downloads, and/or serve large files over a separate path (Cloudflare R2 or a signed direct link) so they don't compete with interactive traffic.</div></li>
+  <li><span class="sev warn">Medium</span><b>Static assets are sent uncompressed and with <code>max-age=0</code>.</b>
+    The 4.3 MB visualizer bundle and 1.6 MB earth texture are re-validated on every visit and travel the tunnel uncompressed (Cloudflare compresses only at its edge, after the tunnel leg). Hashed files in <code>/visualizer/assets/</code> can be cached for a year.
+    <div class="note">Fix: add <code>compression</code> middleware to <code>backend/server.js</code>, serve <code>/visualizer/assets</code> with <code>immutable, max-age=31536000</code>, convert the earth texture to WebP/AVIF, and split Cesium out of the main bundle.</div></li>
+  <li><span class="sev good">OK</span><b>Memory and host CPU are not a constraint.</b> All five processes together use well under 1.5 GB of 128 GB, and the host averages under 10% CPU across 52 cores. The landing page and other static pages stay fast locally under every load. The slowness is design-bound (payload size, single-threaded Python, shared uplink), not hardware-bound.</li>
+</ol>
+</div>
+
+<h2>Latency of each page / component under each load</h2>
+<p class="note">Median (p50) response time of the probe requests in each phase; hover a cell for p95 and sample count. Colour is log-scaled — darker is slower. Phases 7–8 go through the public URL and Cloudflare.</p>
+<div class="card tablewrap"><table id="heat"></table></div>
+
+<h2>What the simulated visitors experienced</h2>
+<div class="card tablewrap"><table id="gen"></table>
+<p class="note">Target WebSocket rate is 1 frame/s. Radar should poll <code>/visible</code> about 1×/s and <code>/passes</code> every 10 s; any count below that means requests were stuck waiting.</p></div>
+
+<h2>Process CPU over the run</h2>
+<p class="note">100% = one full core. Hover for every process at that moment. Numbered bands above every chart are the phases: <span id="phasekey"></span>.</p>
+<div class="card"><div id="c-cpu"></div></div>
+
+<div class="grid2">
+  <div><h2>Uplink to Cloudflare (eno2 transmit)</h2>
+    <p class="note">What actually leaves this machine for the public internet.</p>
+    <div class="card"><div id="c-eno2"></div></div></div>
+  <div><h2>Loopback traffic between local services</h2>
+    <p class="note">Internal traffic, e.g. main site ⇄ gateway ⇄ Python, and local test downloads.</p>
+    <div class="card"><div id="c-lo"></div></div></div>
+</div>
+
+<div class="grid2">
+  <div><h2>Resident memory per process</h2><div class="card"><div id="c-rss"></div></div></div>
+  <div><h2>Open TCP sockets per process</h2><div class="card"><div id="c-tcp"></div></div></div>
+</div>
+
+<h2>Payload sizes</h2>
+<p class="note">Bytes sent from the origin for each request (before Cloudflare), and how long it took locally.</p>
+<div class="card"><div id="c-sizes"></div></div>
+
+<h2>Per-process detail by phase</h2>
+<div class="card tablewrap"><table id="proc"></table><p class="note">* From the kernel's per-process write counter. cloudflared sends with <code>sendmsg</code>, which that counter doesn't include, so its traffic shows up in the uplink chart instead.</p></div>
+
+<details><summary>How this was measured</summary>
+<div class="card"><p class="note">Generated by <code>perf/netbench.py</code> (re-run any time, then <code>perf/make_report.py</code>). Visualizer viewers are real WebSocket clients on <code>/visualizer-ws/global</code>; radar viewers poll <code>/visualizer-api/visible</code> every 1 s and <code>/visualizer-api/passes</code> every 10 s, as <code>SkyRadarPage.jsx</code> does; portal downloads are authenticated <code>/local/download</code> streams of a 1.6 GB FITS file. Per-process network is approximated from socket write volume (<code>write_chars</code>), as per-PID packet accounting needs root. Phases 1–6 hit <code>127.0.0.1:5000</code> and so exclude the internet link; phases 7–8 use <code>https://www.aries-ssa.com</code> with deliberately light load (1 viewer + 1 download) so real visitors weren't disrupted.</p></div>
+</details>
+</main>
+<div class="tip" id="tip"></div>
+<script>
+const DATA = /*__DATA__*/null;
+const COLORS = ["--s1", "--s2", "--s3", "--s4", "--s5"];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const tip = document.getElementById("tip");
+const fmtMs = v => v == null ? "–" : v >= 1000 ? (v / 1000).toFixed(1) + " s" : Math.round(v) + " ms";
+const fmtBytes = b => b >= 1e6 ? (b / 1e6).toFixed(1) + " MB" : b >= 1e3 ? (b / 1e3).toFixed(0) + " KB" : b + " B";
+const short = p => p.replace(/^\d+ /, "");
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function showTip(evt, header, rows) {
+  tip.replaceChildren();
+  const hd = document.createElement("div"); hd.className = "hd"; hd.textContent = header; tip.appendChild(hd);
+  for (const r of rows) {
+    const row = document.createElement("div"); row.className = "row";
+    const l = document.createElement("span");
+    if (r.color) { const i = document.createElement("i"); i.style.background = r.color; l.appendChild(i); }
+    l.appendChild(document.createTextNode(r.label));
+    const v = document.createElement("b"); v.textContent = r.value;
+    row.append(l, v); tip.appendChild(row);
+  }
+  tip.style.display = "block";
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = evt.clientX + 14, y = evt.clientY + 14;
+  if (x + w > innerWidth - 8) x = evt.clientX - w - 14;
+  if (y + h > innerHeight - 8) y = evt.clientY - h - 14;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+const hideTip = () => tip.style.display = "none";
+
+// ---------- time-series line chart with phase bands & crosshair ----------
+function lineChart(id, opts) {
+  const host = document.getElementById(id);
+  host.replaceChildren();
+  const S = DATA.series, xs = S.t;
+  const W = host.clientWidth || 600, H = opts.height || 240;
+  const m = { l: 48, r: 16, t: 22, b: 26 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const xmax = xs[xs.length - 1];
+  const ymaxRaw = Math.max(1, ...opts.series.flatMap(s => s.values));
+  const ymax = niceMax(ymaxRaw);
+  const X = v => m.l + v / xmax * iw, Y = v => m.t + ih - v / ymax * ih;
+
+  if (opts.series.length > 1) {
+    const lg = document.createElement("div"); lg.className = "legend";
+    opts.series.forEach(s => {
+      const sp = document.createElement("span"); const i = document.createElement("i");
+      i.style.background = css(s.color); sp.append(i, document.createTextNode(s.name)); lg.appendChild(sp);
+    });
+    host.appendChild(lg);
+  }
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": opts.label }, host);
+  DATA.bands.forEach((b, i) => {
+    if (i % 2 === 0) el("rect", { x: X(b.start), y: m.t, width: Math.max(0, X(b.end) - X(b.start)), height: ih, fill: css("--band") }, svg);
+    const lbl = el("text", { x: X(b.start) + 3, y: m.t - 7 }, svg);
+    lbl.textContent = (b.name.match(/^\d+/) || [""])[0];
+  });
+  const div = [4, 5].find(n => isNice(ymax / n)) || 4;
+  for (let k = 0; k <= div; k++) {
+    const v = ymax * k / div;
+    el("line", { x1: m.l, x2: m.l + iw, y1: Y(v), y2: Y(v), stroke: css("--grid") }, svg);
+    const t = el("text", { x: m.l - 6, y: Y(v) + 4, "text-anchor": "end" }, svg);
+    t.textContent = fmtAxis(v) + (k === div ? " " + opts.unit : "");
+  }
+  for (let s = 0; s <= xmax; s += 30) {
+    const t = el("text", { x: X(s), y: H - 8, "text-anchor": "middle" }, svg); t.textContent = s + "s";
+  }
+  opts.series.forEach(s => {
+    const d = s.values.map((v, i) => (i ? "L" : "M") + X(xs[i]).toFixed(1) + " " + Y(v).toFixed(1)).join("");
+    el("path", { d, fill: "none", stroke: css(s.color), "stroke-width": 2, "stroke-linejoin": "round" }, svg);
+  });
+  const cross = el("line", { y1: m.t, y2: m.t + ih, stroke: css("--text-muted"), "stroke-width": 1, visibility: "hidden" }, svg);
+  const hit = el("rect", { x: m.l, y: m.t, width: iw, height: ih, fill: "transparent" }, svg);
+  hit.addEventListener("pointermove", e => {
+    const r = svg.getBoundingClientRect();
+    const xv = (e.clientX - r.left) * (W / r.width);
+    const tx = (xv - m.l) / iw * xmax;
+    let i = 0; while (i < xs.length - 1 && xs[i + 1] < tx) i++;
+    if (i < xs.length - 1 && Math.abs(xs[i + 1] - tx) < Math.abs(xs[i] - tx)) i++;
+    cross.setAttribute("x1", X(xs[i])); cross.setAttribute("x2", X(xs[i])); cross.setAttribute("visibility", "visible");
+    showTip(e, `${xs[i].toFixed(0)} s · ${short(S.phase[i])}`,
+      opts.series.map(s => ({ label: s.name, value: fmtAxis(s.values[i]) + " " + opts.unit, color: css(s.color) }))
+        .sort((a, b) => parseFloat(b.value) - parseFloat(a.value)));
+  });
+  hit.addEventListener("pointerleave", () => { cross.setAttribute("visibility", "hidden"); hideTip(); });
+}
+function isNice(v) { const p = Math.pow(10, Math.floor(Math.log10(v))); return [1, 2, 2.5, 5, 10].some(f => Math.abs(v / p - f) < 1e-9); }
+function niceMax(v) { const p = Math.pow(10, Math.floor(Math.log10(v))); for (const f of [1, 2, 2.5, 5, 10]) if (f * p >= v) return f * p; return 10 * p; }
+function fmtAxis(v) { return v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 0 : 1) + "k" : v >= 10 ? Math.round(v) : +v.toFixed(1); }
+
+// ---------- heatmap table ----------
+function heatTable() {
+  const t = document.getElementById("heat"); t.replaceChildren();
+  const all = DATA.lat.flatMap(r => r.cells.map(c => c.p50)).filter(v => v != null);
+  const lo = Math.log10(Math.max(1, Math.min(...all))), hi = Math.log10(Math.max(...all));
+  const a = hexRgb(css("--seq-lo")), b = hexRgb(css("--seq-hi"));
+  const head = t.insertRow(); const th0 = document.createElement("th"); th0.textContent = "Component"; head.appendChild(th0);
+  DATA.phases.forEach(p => { const th = document.createElement("th"); th.style.textAlign = "center"; th.textContent = short(p); head.appendChild(th); });
+  DATA.lat.forEach(r => {
+    const tr = t.insertRow(); const c0 = tr.insertCell(); c0.textContent = r.target;
+    r.cells.forEach((c, j) => {
+      const td = tr.insertCell(); td.className = "heat";
+      if (c.p50 == null) { td.textContent = "–"; return; }
+      const f = hi > lo ? (Math.log10(Math.max(1, c.p50)) - lo) / (hi - lo) : 0;
+      const rgb = a.map((x, k) => Math.round(x + (b[k] - x) * f));
+      td.style.background = `rgb(${rgb})`;
+      const lum = (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
+      td.style.color = lum > 0.55 ? "#0b0b0b" : "#ffffff";
+      td.textContent = fmtMs(c.p50) + (c.fail ? " ⚠" : "");
+      td.tabIndex = 0;
+      const show = e => showTip(e, `${r.target} · ${short(DATA.phases[j])}`, [
+        { label: "median", value: fmtMs(c.p50) }, { label: "p95", value: fmtMs(c.p95) },
+        { label: "samples", value: String(c.n) }, { label: "failed", value: String(c.fail) }]);
+      td.addEventListener("pointermove", show);
+      td.addEventListener("focus", () => { const r2 = td.getBoundingClientRect(); show({ clientX: r2.right, clientY: r2.top }); });
+      td.addEventListener("pointerleave", hideTip); td.addEventListener("blur", hideTip);
+    });
+  });
+}
+function hexRgb(h) { h = h.replace("#", ""); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
+
+function simpleTable(id, cols, rows) {
+  const t = document.getElementById(id); t.replaceChildren();
+  const head = t.insertRow();
+  cols.forEach(c => { const th = document.createElement("th"); th.textContent = c[0]; head.appendChild(th); });
+  rows.forEach(r => { const tr = t.insertRow(); cols.forEach(c => { tr.insertCell().textContent = c[1](r); }); });
+}
+const n1 = v => v == null ? "–" : v.toFixed(1), n0 = v => v == null ? "–" : Math.round(v).toString();
+
+function sizesChart() {
+  const host = document.getElementById("c-sizes"); host.replaceChildren();
+  const rows = DATA.sizes.slice().sort((a, b) => b.bytes - a.bytes);
+  const W = host.clientWidth || 600, rowH = 30, lw = Math.min(230, W * 0.4), H = rows.length * rowH + 8;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": "Payload sizes" }, host);
+  const max = rows[0].bytes, iw = W - lw - 150;
+  rows.forEach((r, i) => {
+    const y = i * rowH + 4;
+    const t = el("text", { x: 0, y: y + 16, fill: css("--text-secondary") }, svg); t.style.fill = css("--text-secondary"); t.textContent = r.name;
+    const w = Math.max(3, r.bytes / max * iw);
+    el("rect", { x: lw, y: y + 4, width: w, height: rowH - 10, rx: 4, fill: css("--s1") }, svg);
+    const v = el("text", { x: lw + w + 6, y: y + 16 }, svg); v.style.fill = css("--text-primary");
+    v.textContent = `${fmtBytes(r.bytes)} · ${fmtMs(r.ms)}`;
+  });
+}
+
+function render() {
+  document.getElementById("phasekey").textContent = DATA.phases.join(" · ");
+  heatTable();
+  simpleTable("gen", [
+    ["Phase", r => short(r.phase)],
+    ["Viewers", r => r.ws_n || "–"], ["Mbit/s per viewer", r => n1(r.ws_mbps_each)],
+    ["Frames/s (want 1)", r => r.ws_frames_per_s == null ? "–" : r.ws_frames_per_s.toFixed(2)],
+    ["Frame gap p50", r => fmtMs(r.ws_interval_p50)], ["Stalls >5 s", r => r.ws_stalls ?? "–"],
+    ["Radar tabs", r => r.radar_n || "–"], ["/visible p50", r => fmtMs(r.visible_p50)], ["/visible p95", r => fmtMs(r.visible_p95)],
+    ["/visible polls/s (want 1)", r => r.visible_polls_per_s == null ? "–" : r.visible_polls_per_s.toFixed(2)],
+    ["/passes slowest", r => fmtMs(r.passes_max)],
+    ["Downloads", r => r.dl_n || "–"], ["Mbit/s per download", r => n0(r.dl_mbps_each)],
+  ], DATA.gen);
+  const procs = DATA.proc_names.filter(p => !p.startsWith("tle"));
+  const pick = key => procs.map((p, i) => ({ name: p, color: COLORS[i], values: DATA.series[key][p] }));
+  lineChart("c-cpu", { series: pick("cpu"), unit: "%", label: "CPU per process", height: 260 });
+  lineChart("c-rss", { series: pick("rss"), unit: "MB", label: "Memory per process" });
+  lineChart("c-tcp", { series: pick("tcp"), unit: "sockets", label: "TCP sockets per process" });
+  lineChart("c-eno2", { series: [{ name: "eno2 transmit", color: "--s1", values: DATA.series.eno2_tx }], unit: "Mbit/s", label: "Uplink transmit" });
+  lineChart("c-lo", { series: [{ name: "loopback", color: "--s1", values: DATA.series.lo_tx }], unit: "Mbit/s", label: "Loopback traffic" });
+  sizesChart();
+  simpleTable("proc", [
+    ["Phase", r => short(r.phase)], ["Process", r => r.proc], ["PID", r => r.pid],
+    ["CPU avg %", r => n0(r.cpu_avg)], ["CPU max %", r => n0(r.cpu_max)], ["RSS MB", r => n0(r.rss)],
+    ["Threads", r => r.threads], ["FDs", r => r.fds], ["TCP sockets", r => r.tcp],
+    ["Socket+file write Mbit/s*", r => n1(r.io_w * 8)],
+  ], DATA.proc_tab);
+}
+render();
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(render, 150); });
+document.getElementById("themebtn").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  render();
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+</script>
+</body>
+</html>
