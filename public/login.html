@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/assets/brand/aries-observe-favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="icon" href="/assets/brand/favicon-16.png" sizes="16x16" type="image/png">
+    <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
+    <title>ARIES Observe - Sign In</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/portal.css">
+</head>
+
+<body>
+    <main class="login-page">
+        <form class="login-card" action="/portal/login" method="post">
+            <img class="brand-logo-mark login-logo" src="/assets/brand/aries-observe-emblem.svg" alt="" aria-hidden="true">
+            <h1>Access Portal</h1>
+            <p class="login-message" id="login-message" role="status" hidden></p>
+            <input type="hidden" name="next" id="login-next">
+            <label class="login-field">
+                Username
+                <input type="text" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus>
+            </label>
+            <label class="login-field">
+                Password
+                <input type="password" name="password" autocomplete="current-password" required>
+            </label>
+            <button type="submit" class="login-submit">Sign In</button>
+            <a class="login-back" href="/landing.html">Back to Landing</a>
+        </form>
+    </main>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const message = document.getElementById('login-message');
+
+        document.getElementById('login-next').value = params.get('next') || '/portal';
+
+        if (params.has('error')) {
+            message.textContent = 'Incorrect username or password.';
+            message.classList.add('error');
+            message.hidden = false;
+        } else if (params.has('signedOut')) {
+            message.textContent = 'You have signed out.';
+            message.hidden = false;
+        }
+    </script>
+</body>
+
+</html>

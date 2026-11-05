@@ -12,10 +12,10 @@ const ICONS = {
 };
 
 const MIRROR_NAMES = {
-    gdrive: 'Mirror 1',
-    onedrive: 'Mirror 2',
-    local: 'Mirror 3',
-    nas:'Mirror 4'
+    gdrive: 'Mirror Cloud G',
+    onedrive: 'Mirror Cloud O',
+    local: 'Mirror Local',
+    nas:'Mirror Nas'
 };
 
 function selectMirror(mirror) {
@@ -57,6 +57,14 @@ function loadRoot() {
     }
 }
 
+// The back button can restore this page from memory without asking the server,
+// even after signing out. Reloading sends a signed-out browser to the login page.
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
+
 async function loadFiles(url, mirror) {
     const filesContainer = document.getElementById('files');
     filesContainer.innerHTML = '<div class="loading">Loading...</div>';
@@ -67,6 +75,12 @@ async function loadFiles(url, mirror) {
                 Accept: 'application/json'
             }
         });
+
+        // Signed out or session expired, e.g. a tab left open.
+        if (response.status === 401) {
+            window.location.href = '/portal/login';
+            return;
+        }
 
         if (!response.ok) {
             throw new Error(await readErrorMessage(response));
@@ -120,7 +134,7 @@ function renderFiles(files, mirror) {
         }
 
         const downloadUrl = getDownloadUrl(file, mirror);
-        // Mirror 4 (NAS): the file name is a link that opens the file
+        // Mirror Nas: the file name is a link that opens the file
         // straight from the NAS in a new tab (the backend only renders safe
         // types inline; anything else falls back to a download).
         const fileLabel = mirror === 'nas'

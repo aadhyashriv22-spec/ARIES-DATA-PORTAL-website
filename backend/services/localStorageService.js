@@ -3,9 +3,31 @@ const path = require('path');
 const { LOCAL_STORAGE_ROOT } = require('../config/storage');
 const { safeResolveInsideRoot } = require('../utils/safePath');
 
+function createError(message, status) {
+    const error = new Error(message);
+    error.status = status;
+    return error;
+}
+
+async function statInsideStorage(targetPath) {
+    try {
+        return await fs.promises.stat(targetPath);
+    } catch (error) {
+        if (error.code !== 'ENOENT') {
+            throw error;
+        }
+
+        if (!fs.existsSync(LOCAL_STORAGE_ROOT)) {
+            throw createError('Mirror Local storage is currently unavailable', 503);
+        }
+
+        throw createError('File not found', 404);
+    }
+}
+
 async function listFiles(relativePath = '') {
     const folderPath = safeResolveInsideRoot(LOCAL_STORAGE_ROOT, relativePath);
-    const folderStats = await fs.promises.stat(folderPath);
+    const folderStats = await statInsideStorage(folderPath);
 
     if (!folderStats.isDirectory()) {
         const error = new Error('Folder not found');
@@ -38,7 +60,7 @@ async function listFiles(relativePath = '') {
 
 async function getDownloadPath(relativePath) {
     const filePath = safeResolveInsideRoot(LOCAL_STORAGE_ROOT, relativePath);
-    const fileStats = await fs.promises.stat(filePath);
+    const fileStats = await statInsideStorage(filePath);
 
     if (!fileStats.isFile()) {
         const error = new Error('File not found');

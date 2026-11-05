@@ -27,16 +27,16 @@ const NAS_STORAGE_ROOT = path.resolve(
         : path.resolve(__dirname, '..', nasStorageRootValue)
 );
 
-// Mirror 4: each organization sees only its own NAS share, mounted
+// Mirror Nas: each organization sees only its own NAS share, mounted
 // read-only as a subfolder of NAS_STORAGE_ROOT (see
 // scripts/setup-nas-mounts.sh). An organization with no entry here gets an
-// empty mirror 4 -- never another organization's folder.
+// empty Mirror Nas -- never another organization's folder.
 const NAS_ORGANIZATION_FOLDERS = Object.freeze({
     istrac: 'ISTRAC_DATA',
     irde: 'DRDO-IRDE'
 });
 
-// Organizations whose login sees the whole of mirror 4 (every
+// Organizations whose login sees the whole of Mirror Nas (every
 // organization's folder above). Intentionally empty for now: partner
 // organizations currently share the ARIES login, so ARIES must not see
 // their data until each has its own password. Add 'aries' here then.

@@ -5,6 +5,7 @@ const {
     listFolderFiles,
     streamDownload
 } = require('../services/oneDriveService');
+const { requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -12,7 +13,8 @@ function asyncRoute(handler) {
     return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 }
 
-router.get('/debug', asyncRoute(async (req, res) => {
+// Lists every user in the Microsoft tenant, so it is ARIES-only.
+router.get('/debug', requireAdmin, asyncRoute(async (req, res) => {
     const users = await listUsers();
     res.json(users);
 }));

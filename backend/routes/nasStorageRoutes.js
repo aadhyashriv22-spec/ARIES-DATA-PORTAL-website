@@ -20,8 +20,8 @@ function asyncRoute(handler) {
     return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 }
 
-// Both routes are scoped to req.organization (set by identifyOrganization
-// in server.js): every path is resolved inside that organization's own
+// Both routes are scoped to req.organization (set by authCheck in
+// server.js): every path is resolved inside that organization's own
 // NAS folder only.
 router.get('/list', asyncRoute(async (req, res) => {
     const relativePath = typeof req.query.path === 'string' ? req.query.path : '';

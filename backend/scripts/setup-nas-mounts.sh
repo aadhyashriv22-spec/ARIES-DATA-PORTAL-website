@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Mounts each organization's NAS share READ-ONLY under NAS_STORAGE_ROOT
-# (/mnt/nas_public) for mirror 4 of the Access Portal.
+# (/mnt/nas_public) for Mirror Nas of the Access Portal.
 #
 #   sudo bash backend/scripts/setup-nas-mounts.sh
 #

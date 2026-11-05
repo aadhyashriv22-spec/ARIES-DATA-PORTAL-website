@@ -11,7 +11,8 @@ function errorHandler(err, req, res, next) {
         return next(err);
     }
 
-    const message = status >= 500 ? 'Internal server error' : err.message || 'Request failed';
+    // A 503 is set on purpose (storage offline), so its message is safe to show.
+    const message = status >= 500 && status !== 503 ? 'Internal server error' : err.message || 'Request failed';
 
     res.status(status).json({
         error: message

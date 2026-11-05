@@ -222,12 +222,132 @@ body::before {
     padding: 8px 16px;
     border-radius: var(--border-radius-sm);
     transition: all 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
 }
 
 .btn-back-landing:hover {
     color: var(--color-text);
     background: var(--color-accent-soft);
     border-color: var(--color-accent);
+}
+
+.portal-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-sign-out {
+    font-family: inherit;
+    line-height: inherit;
+    cursor: pointer;
+}
+
+@media (max-width: 480px) {
+    .header-inner {
+        padding: 0 16px;
+    }
+
+    .portal-nav {
+        gap: 6px;
+    }
+
+    .btn-back-landing {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    .btn-back-landing svg {
+        display: none;
+    }
+}
+
+/* Login page */
+.login-page {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px 60px;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 32px 24px;
+    background: var(--color-navy-panel);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+}
+
+.login-card h1 {
+    font-family: var(--font-heading);
+    font-size: 24px;
+    text-align: center;
+}
+
+.login-logo {
+    align-self: center;
+}
+
+.login-message {
+    font-size: 14px;
+    text-align: center;
+    color: var(--color-text-muted);
+}
+
+.login-message.error {
+    color: #f0a5a5;
+}
+
+.login-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.login-field input {
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--color-text);
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border-glow);
+    border-radius: var(--border-radius-sm);
+    padding: 10px 12px;
+}
+
+.login-field input:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+}
+
+.login-submit {
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 11px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.login-submit:hover {
+    background: var(--color-accent-hover);
+}
+
+.login-back {
+    font-size: 13px;
+    text-align: center;
+    color: var(--color-text-muted);
 }
 
 /* Container limits */
@@ -459,7 +579,7 @@ body::before {
     text-decoration: underline;
 }
 
-/* Mirror 4 file links (open the file from the NAS in a new tab) */
+/* Mirror Nas file links (open the file from the NAS in a new tab) */
 .file-link {
     color: inherit;
     text-decoration: none;

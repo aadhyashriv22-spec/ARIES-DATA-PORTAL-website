@@ -891,18 +891,7 @@
                     orbitRadius: displayRadius,
                     angularVelocityReal: physics.angularVelocityRealRadPerSec,
                     angle: initialAngle,
-                    pulse: Math.random() * 10,
-                    // Sunlit-color materials that should darken when the
-                    // satellite passes through Earth's shadow (see the
-                    // eclipse check in the animate() satellite loop) — the
-                    // navLight is deliberately excluded since it's a
-                    // self-powered beacon, not a sunlit surface.
-                    eclipseMaterials: [
-                        { mat: busMat, litColor: busMat.color.clone() },
-                        { mat: panelMat, litColor: panelMat.color.clone() },
-                        { mat: dishMat, litColor: dishMat.color.clone() }
-                    ],
-                    eclipseFactor: 0
+                    pulse: Math.random() * 10
                 });
             }
 
@@ -1300,6 +1289,26 @@
     const PIN_LON = 79.46;
     const PIN_LABEL = 'ARIES \u2022 Nainital';
 
+    // --------------------------------------------------------------
+    // TELESCOPE TRACKING RULES
+    // The telescope is only "Tracking" (beam on) when a satellite could
+    // really be seen from the site. All three must be true at the same moment:
+    //   1. the satellite is above MIN_ELEVATION_DEG over the horizon
+    //   2. the Sun is below SUN_MAX_ELEVATION_DEG (sky dark enough)
+    //   3. the satellite is sunlit (not inside Earth's shadow)
+    // Otherwise it stands by: beam off, but the tube still follows a
+    // satellite above the horizon, falling back on GEO, so it never
+    // points at empty sky.
+    // --------------------------------------------------------------
+    const TRACKING = {
+        MIN_ELEVATION_DEG: 15,      // below this: thick air, haze, hills
+        SUN_MAX_ELEVATION_DEG: -6,  // -6 civil, -12 nautical, -18 astronomical twilight
+        MAX_PHASE_ANGLE_DEG: null,  // PENDING guide's "160 degrees": null = no phase limit
+        SHOW_STATUS: true,          // small readout chip in the corner of the scene
+        SLEW_SECONDS: 1.5,          // time to swing across to a new target
+        MIN_PASS_SECONDS: 3         // skip a satellite setting sooner than this after the slew
+    };
+
     // Standard three.js lat/lon -> sphere position conversion, matching the
     // default UV mapping THREE.SphereGeometry uses for an equirectangular
     // world texture (this is what earth-texture.jpg is).
@@ -1417,7 +1426,7 @@
         const beamGrad = beamCtx.createLinearGradient(0, 256, 0, 0); // bottom (v=0) -> top (v=1)
         beamGrad.addColorStop(0, 'rgba(255, 209, 128, 0.85)');
         beamGrad.addColorStop(0.35, 'rgba(255, 190, 90, 0.35)');
-        beamGrad.addColorStop(1, 'rgba(255, 176, 32, 0)');
+        beamGrad.addColorStop(1, 'rgba(255, 176, 32, 0.12)');
         beamCtx.fillStyle = beamGrad;
         beamCtx.fillRect(0, 0, 8, 256);
 
@@ -1431,9 +1440,16 @@
             opacity: 0.8
         });
         const beam = new THREE.Mesh(beamGeo, beamMat);
-        beam.position.y = 0.32 + beamHeight / 2; // base starts just above the telescope
+        // The beam hangs from a pivot so animate() can aim it at a
+        // satellite: it starts hidden (no target yet), unit-height along
+        // +Y, and is rotated/stretched toward the tracked satellite.
+        const beamPivot = new THREE.Group();
+        beamPivot.position.y = 0.32;
+        beam.position.y = beamHeight / 2;
         beam.renderOrder = 4.2;
-        orientGroup.add(beam);
+        beamPivot.add(beam);
+        beamPivot.visible = false;
+        orientGroup.add(beamPivot);
 
         // Sparkle at the beam's tip
         const sparkCanvas = document.createElement('canvas');
@@ -1458,6 +1474,7 @@
         spark.scale.set(0.4, 0.4, 1);
         spark.position.y = 0.32 + beamHeight;
         spark.renderOrder = 4.3;
+        spark.visible = false;
         orientGroup.add(spark);
 
         // Floating label, offset outward from the telescope — no background
@@ -1506,11 +1523,224 @@
             ring: ring,
             ringMat: ringMat,
             mountPivot: mountPivot,
+            tube: tube,
+            orientGroup: orientGroup,
+            beamPivot: beamPivot,
+            beamHeight: beamHeight,
+            spark: spark,
             beamMat: beamMat,
             sparkMat: sparkMat,
             pulseT: 0,
-            scanT: 0
+            scanT: 0,
+            // tracking state (see updateTelescopeTracking)
+            targetSat: null,
+            lock: 0,
+            slew: 1,
+            beamLength: 1,
+            aimDir: new THREE.Vector3(-Math.sin(Math.PI / 2.6), Math.cos(Math.PI / 2.6), 0),
+            statusText: ''
         };
+    }
+
+    // ---------------- Telescope tracking ----------------
+    // Decides, every frame, whether any satellite is genuinely observable
+    // from the ARIES site, and if so aims the telescope and its beam at it.
+    // All geometry is done in world space with the Earth's centre as origin.
+    const _tP = new THREE.Vector3();
+    const _tC = new THREE.Vector3();
+    const _tUp = new THREE.Vector3();
+    const _tSun = new THREE.Vector3();
+    const _tSat = new THREE.Vector3();
+    const _tRel = new THREE.Vector3();
+    const _tR = new THREE.Vector3();
+    const _tPerp = new THREE.Vector3();
+    const _tDesired = new THREE.Vector3();
+    const _tAimLocal = new THREE.Vector3();
+    const _tOrigin = new THREE.Vector3();
+    const _tY = new THREE.Vector3(0, 1, 0);
+    const _tGeo = new THREE.Vector3();
+    const _tFuture = new THREE.Vector3();
+
+    function satelliteName(sat) {
+        if (!sat.trackName) {
+            const sameClass = STATE.satellites.filter(s => s.className === sat.className);
+            sat.trackName = sat.className + '-' + (sameClass.indexOf(sat) + 1);
+        }
+        return sat.trackName;
+    }
+
+    // A geostationary satellite keeps pace with the Earth, so its angle comes
+    // from the ARIES site's position rather than its own orbital speed. This
+    // holds it over the site's longitude as the globe spins.
+    function getGeoAngleOverSite(sat) {
+        STATE.locationPin.group.getWorldPosition(_tGeo);
+        sat.group.parent.worldToLocal(_tGeo);
+        return Math.atan2(_tGeo.z, _tGeo.x);
+    }
+
+    function setTrackingStatus(text) {
+        const pin = STATE.locationPin;
+        if (!TRACKING.SHOW_STATUS || !pin || pin.statusText === text) return;
+        pin.statusText = text;
+
+        if (!pin.statusEl) {
+            const container = document.getElementById('earth-canvas');
+            if (!container) return;
+            if (getComputedStyle(container).position === 'static') {
+                container.style.position = 'relative';
+            }
+            const el = document.createElement('div');
+            el.setAttribute('aria-live', 'off');
+            el.style.cssText = 'position:absolute;left:12px;bottom:12px;z-index:4;pointer-events:none;' +
+                'font:500 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;letter-spacing:.02em;' +
+                'color:#ffe2a8;background:rgba(10,16,30,.62);border:1px solid rgba(255,176,32,.35);' +
+                'border-radius:8px;padding:6px 10px;max-width:calc(100% - 24px);';
+            container.appendChild(el);
+            pin.statusEl = el;
+        }
+        pin.statusEl.textContent = text;
+    }
+
+    function updateTelescopeTracking(dt) {
+        const pin = STATE.locationPin;
+        if (!pin || !STATE.earthGroup || !STATE.lights.dirLight) return;
+
+        const DEG = Math.PI / 180;
+        pin.group.getWorldPosition(_tP);
+        STATE.earthGroup.getWorldPosition(_tC);
+
+        _tUp.copy(_tP).sub(_tC);
+        const earthR = _tUp.length();
+        _tUp.divideScalar(earthR);
+
+        // Sun direction (the light is a directional light shining at the origin)
+        STATE.lights.dirLight.getWorldPosition(_tSun).normalize();
+        const sunElev = Math.asin(THREE.MathUtils.clamp(_tUp.dot(_tSun), -1, 1)) / DEG;
+        const skyDark = sunElev <= TRACKING.SUN_MAX_ELEVATION_DEG;
+
+        // Satellites are drawn on shrunken rings on small screens; undo that
+        // scale for the physics tests so the shadow and horizon checks stay true.
+        const orbitScale = getOrbitDisplayScale();
+
+        // Would this satellite still be above the limit once the telescope had
+        // swung over and followed it for a moment?
+        function staysUp(sat) {
+            const seconds = TRACKING.SLEW_SECONDS + TRACKING.MIN_PASS_SECONDS;
+            const angle = sat.angle + sat.angularVelocityReal * SIMULATION_TIME_SCALE * seconds;
+            _tFuture.set(Math.cos(angle) * sat.orbitRadius, 0, Math.sin(angle) * sat.orbitRadius);
+            sat.group.parent.localToWorld(_tFuture);
+            _tFuture.sub(_tC).divideScalar(orbitScale).addScaledVector(_tUp, -earthR);
+            const sine = THREE.MathUtils.clamp(_tFuture.dot(_tUp) / _tFuture.length(), -1, 1);
+            return Math.asin(sine) / DEG >= TRACKING.MIN_ELEVATION_DEG;
+        }
+
+        const visible = [];
+        STATE.satellites.forEach((sat) => {
+            sat.group.getWorldPosition(_tSat);
+            _tRel.copy(_tSat).sub(_tC).divideScalar(orbitScale); // satellite relative to Earth's centre
+            _tR.copy(_tRel).sub(_tUp.clone().multiplyScalar(earthR)); // observer -> satellite
+            const range = _tR.length();
+            const elev = Math.asin(THREE.MathUtils.clamp(_tR.dot(_tUp) / range, -1, 1)) / DEG;
+            if (elev < TRACKING.MIN_ELEVATION_DEG) return;
+
+            let observable = skyDark;
+
+            // Earth's shadow: a cylinder behind the Earth, away from the Sun
+            const along = _tRel.dot(_tSun);
+            if (along < 0) {
+                _tPerp.copy(_tRel).addScaledVector(_tSun, -along);
+                if (_tPerp.length() < earthR) observable = false; // in shadow
+            }
+
+            if (TRACKING.MAX_PHASE_ANGLE_DEG !== null) {
+                // phase angle = Sun - satellite - observer
+                const cosPhase = _tSun.dot(_tR.clone().negate().normalize());
+                if (Math.acos(THREE.MathUtils.clamp(cosPhase, -1, 1)) / DEG > TRACKING.MAX_PHASE_ANGLE_DEG) {
+                    observable = false;
+                }
+            }
+
+            visible.push({ sat: sat, elev: elev, observable: observable });
+        });
+
+        // Prefer what can really be observed. Stay on a moving satellite while
+        // it stays valid, else take the highest one; GEO is the fallback, as
+        // it never sets and would otherwise hold the telescope forever.
+        const observableNow = visible.filter(c => c.observable);
+        const pool = observableNow.length ? observableNow : visible;
+        const moving = pool.filter(c => c.sat.className !== 'GEO' && (c.sat === pin.targetSat || staysUp(c.sat)));
+        const highest = moving.reduce((top, c) => (!top || c.elev > top.elev ? c : top), null);
+        const geo = pool.find(c => c.sat.className === 'GEO');
+        const chosen = moving.find(c => c.sat === pin.targetSat) || highest || geo || null;
+        const tracking = Boolean(chosen && chosen.observable);
+
+        const nextTarget = chosen ? chosen.sat : null;
+        if (nextTarget !== pin.targetSat) pin.slew = 0;
+        pin.targetSat = nextTarget;
+        pin.slew = Math.min(1, pin.slew + dt / TRACKING.SLEW_SECONDS);
+
+        // Desired aim direction, in the telescope's own (local) frame
+        if (chosen) {
+            chosen.sat.group.getWorldPosition(_tSat);
+            _tAimLocal.copy(_tSat);
+            pin.orientGroup.worldToLocal(_tAimLocal);
+            _tOrigin.set(0, 0.23, 0).addScaledVector(pin.aimDir, 0.26);
+            _tDesired.copy(_tAimLocal).sub(_tOrigin);
+            pin.targetRange = _tDesired.length();
+            _tDesired.normalize();
+        } else {
+            // Parked: the original resting tilt with a very slow sway
+            pin.scanT += dt * 0.35;
+            const parkTilt = Math.PI / 2.6;
+            const parkAz = Math.sin(pin.scanT) * (Math.PI / 18);
+            _tDesired.set(-Math.sin(parkTilt) * Math.cos(parkAz), Math.cos(parkTilt), Math.sin(parkTilt) * Math.sin(parkAz));
+        }
+
+        // Ease toward the desired state so the telescope slews instead of
+        // snapping, starting gently on each new target. The beam waits for the
+        // tube to arrive, so it never sweeps across empty sky.
+        const k = 1 - Math.exp(-dt * (chosen ? 0.8 + 4.2 * pin.slew : 2.5));
+        pin.aimDir.lerp(_tDesired, k).normalize();
+        const locked = tracking && pin.slew >= 1;
+        pin.lock += ((locked ? 1 : 0) - pin.lock) * (1 - Math.exp(-dt * 4));
+        if (chosen) {
+            pin.beamLength += (pin.targetRange - pin.beamLength) * (1 - Math.exp(-dt * 6));
+        }
+
+        // Telescope tube follows aimDir: pivot turns about local Y (azimuth), tube tilts (zenith)
+        const d = pin.aimDir;
+        const horiz = Math.hypot(d.x, d.z);
+        if (horiz > 1e-4) {
+            pin.mountPivot.rotation.y = Math.atan2(d.z / horiz, -d.x / horiz);
+        }
+        pin.tube.rotation.z = Math.acos(THREE.MathUtils.clamp(d.y, -1, 1));
+
+        // Beam and tip sparkle: only drawn while locked on
+        const showBeam = pin.lock > 0.02;
+        pin.beamPivot.visible = showBeam;
+        pin.spark.visible = showBeam;
+        if (showBeam) {
+            _tOrigin.set(0, 0.23, 0).addScaledVector(d, 0.26);
+            pin.beamPivot.position.copy(_tOrigin);
+            pin.beamPivot.quaternion.setFromUnitVectors(_tY, d);
+            pin.beamPivot.scale.set(1, Math.max(pin.beamLength, 0.05) / pin.beamHeight, 1);
+            pin.spark.position.copy(_tOrigin).addScaledVector(d, pin.beamLength);
+            const pulse = 0.65 + Math.sin(pin.pulseT) * 0.2;
+            pin.beamMat.opacity = pulse * pin.lock;
+            pin.sparkMat.opacity = (0.75 + Math.sin(pin.pulseT) * 0.2) * pin.lock;
+        }
+
+        // Readout
+        const sunTxt = (sunElev >= 0 ? '+' : '−') + Math.abs(sunElev).toFixed(0) + '°';
+        const following = chosen ? 'following ' + satelliteName(chosen.sat) + ' · ' : '';
+        if (tracking) {
+            setTrackingStatus('Tracking ' + satelliteName(chosen.sat) + ' · elevation ' + chosen.elev.toFixed(0) +
+                '° · Sun ' + sunTxt + ' · sunlit');
+        } else if (!skyDark) {
+            setTrackingStatus('Standby · ' + following + 'Sun ' + sunTxt + ' (too bright to observe)');
+        } else {
+            setTrackingStatus('Standby · ' + following + 'Sun ' + sunTxt + ' · no sunlit satellite above ' + TRACKING.MIN_ELEVATION_DEG + '°');
+        }
     }
 
     function onWindowResize() {
@@ -1606,22 +1836,12 @@
         // tilt automatically, so no manual per-frame rotation math is
         // needed here (unlike the old radiusX/radiusY/angleZ/angleY
         // approach this replaced).
-        // Earth-shadow (eclipse) direction + center, computed once per
-        // frame and reused for every satellite below rather than per-
-        // satellite — dirLight is a direct child of the scene (not
-        // earthGroup), so its position is already a stable world-space
-        // direction, same one the atmosphere shader uses for its own
-        // day/night terminator (see sunDir in buildEarth()).
-        const eclipseSunDir = STATE.lights.dirLight
-            ? STATE.lights.dirLight.position.clone().normalize()
-            : null;
-        const eclipseEarthCenter = new THREE.Vector3();
-        if (STATE.earthGroup) STATE.earthGroup.getWorldPosition(eclipseEarthCenter);
-        const eclipseSatWorldPos = new THREE.Vector3();
-        const eclipseRelPos = new THREE.Vector3();
-
         STATE.satellites.forEach((sat) => {
-            sat.angle += sat.angularVelocityReal * simulatedDeltaSeconds * motionSpeed;
+            if (sat.className === 'GEO' && STATE.locationPin) {
+                sat.angle = getGeoAngleOverSite(sat);
+            } else {
+                sat.angle += sat.angularVelocityReal * simulatedDeltaSeconds * motionSpeed;
+            }
             sat.group.position.set(
                 Math.cos(sat.angle) * sat.orbitRadius,
                 0,
@@ -1632,38 +1852,6 @@
             if (sat.navLight) {
                 sat.pulse += 0.05 * motionSpeed; // Slower light pulse frequency
                 sat.navLight.visible = Math.sin(sat.pulse * 1.5) > 0;
-            }
-
-            // Earth-shadow eclipse: a satellite is in shadow when it's on
-            // the night side of Earth's center (relative to the sun
-            // direction) AND within Earth's solid radius of the Earth-sun
-            // axis — i.e. actually geometrically behind the globe, not
-            // just anywhere on the dark half of its orbit.
-            if (eclipseSunDir && STATE.earthGroup && sat.eclipseMaterials) {
-                sat.group.getWorldPosition(eclipseSatWorldPos);
-                eclipseRelPos.subVectors(eclipseSatWorldPos, eclipseEarthCenter);
-                const along = eclipseRelPos.dot(eclipseSunDir);
-                let eclipsed = false;
-                if (along < 0) {
-                    const perpDistSq = eclipseRelPos.lengthSq() - along * along;
-                    eclipsed = perpDistSq < STATE.sphereRadius * STATE.sphereRadius;
-                }
-
-                // Ease toward the target instead of snapping, so satellites
-                // fade through the shadow's edge rather than popping — kept
-                // gentle enough to still read as a fairly crisp eclipse at
-                // this orbital scale.
-                const target = eclipsed ? 1 : 0;
-                sat.eclipseFactor += (target - sat.eclipseFactor) * 0.08;
-                if (Math.abs(target - sat.eclipseFactor) < 0.01) sat.eclipseFactor = target;
-
-                // Dimmed rather than fully black — a shadowed satellite is
-                // still very faintly visible (Earthshine / the scene's own
-                // ambient light), not an invisible cutout.
-                const brightness = 1 - sat.eclipseFactor * 0.85;
-                sat.eclipseMaterials.forEach(({ mat, litColor }) => {
-                    mat.color.copy(litColor).multiplyScalar(brightness);
-                });
             }
         });
 
@@ -1769,22 +1957,11 @@
                 STATE.locationPin.ring.scale.set(pingScale, pingScale, 1);
                 STATE.locationPin.ringMat.opacity = 0.55 + Math.sin(STATE.locationPin.pulseT * 1.3) * 0.25;
 
-                if (STATE.locationPin.beamMat) {
-                    STATE.locationPin.beamMat.opacity = 0.65 + Math.sin(STATE.locationPin.pulseT) * 0.2;
-                }
-                if (STATE.locationPin.sparkMat) {
-                    const sparkPulse = 0.75 + Math.sin(STATE.locationPin.pulseT) * 0.2;
-                    STATE.locationPin.sparkMat.opacity = sparkPulse;
-                }
-
-                if (STATE.locationPin.mountPivot) {
-                    STATE.locationPin.scanT += 0.006;
-                    // Oscillates slowly across ~20 degrees total — reads as
-                    // the telescope tracking/scanning, not spinning
-                    STATE.locationPin.mountPivot.rotation.y = Math.sin(STATE.locationPin.scanT) * (Math.PI / 18);
-                }
             }
         }
+
+        // Telescope aims at an observable satellite (or stands by)
+        updateTelescopeTracking(realDeltaSeconds);
 
         // Camera damping based on mouse movement
         if (STATE.scene) {

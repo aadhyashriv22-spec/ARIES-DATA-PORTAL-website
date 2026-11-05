@@ -7,7 +7,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { createProxyMiddleware } = require('http-proxy-middleware');
-const { authCheck, identifyOrganization, ariesAuth, belAuth, irdeAuth, istracAuth } = require('./middleware/auth');
+const { authCheck, login, signOut, requirePortalLogin } = require('./middleware/auth');
 const teamAccessCheck = require('./middleware/teamAccess');
 const errorHandler = require('./middleware/errorHandler');
 const googleDriveRoutes = require('./routes/googleDriveRoutes');
@@ -39,23 +39,33 @@ function sendPortalPage(res) {
     });
 }
 
-app.get('/portal', authCheck, (req, res) => {
+app.get('/portal/login', (req, res) => {
+    res.sendFile(path.join(publicDirectory, 'login.html'), {
+        cacheControl: false,
+        headers: { 'Cache-Control': 'no-store' }
+    });
+});
+
+app.post('/portal/login', login);
+app.post('/portal/sign-out', signOut);
+
+app.get('/portal', requirePortalLogin(), (req, res) => {
     sendPortalPage(res);
 });
 
-app.get('/portal/aries', ariesAuth, (req, res) => {
+app.get('/portal/aries', requirePortalLogin('aries'), (req, res) => {
     sendPortalPage(res);
 });
 
-app.get('/portal/bel', belAuth, (req, res) => {
+app.get('/portal/bel', requirePortalLogin('bel'), (req, res) => {
     sendPortalPage(res);
 });
 
-app.get('/portal/irde', irdeAuth, (req, res) => {
+app.get('/portal/irde', requirePortalLogin('irde'), (req, res) => {
     sendPortalPage(res);
 });
 
-app.get('/portal/istrac', istracAuth, (req, res) => {
+app.get('/portal/istrac', requirePortalLogin('istrac'), (req, res) => {
     sendPortalPage(res);
 });
 
@@ -135,7 +145,7 @@ app.use(express.static(publicDirectory, { index: false }));
 app.use('/gdrive', authCheck, googleDriveRoutes);
 app.use('/onedrive', authCheck, oneDriveRoutes);
 app.use('/local', authCheck, localStorageRoutes);
-app.use('/nas', authCheck, identifyOrganization, nasStorageRoutes);
+app.use('/nas', authCheck, nasStorageRoutes);
 
 app.use((req, res, next) => {
     const error = new Error('Not found');
